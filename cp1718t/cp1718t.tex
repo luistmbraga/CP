@@ -1,0 +1,2696 @@
+\documentclass[a4paper]{article}
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{palatino}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage{graphicx}
+\usepackage{cp1718t}
+\usepackage{subcaption}
+\usepackage{adjustbox}
+\usepackage[T1]{fontenc}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{adjustbox}
+%================= lhs2tex=====================================================%
+%% ODER: format ==         = "\mathrel{==}"
+%% ODER: format /=         = "\neq "
+%
+%
+\makeatletter
+\@ifundefined{lhs2tex.lhs2tex.sty.read}%
+  {\@namedef{lhs2tex.lhs2tex.sty.read}{}%
+   \newcommand\SkipToFmtEnd{}%
+   \newcommand\EndFmtInput{}%
+   \long\def\SkipToFmtEnd#1\EndFmtInput{}%
+  }\SkipToFmtEnd
+
+\newcommand\ReadOnlyOnce[1]{\@ifundefined{#1}{\@namedef{#1}{}}\SkipToFmtEnd}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\DeclareFontFamily{OT1}{cmtex}{}
+\DeclareFontShape{OT1}{cmtex}{m}{n}
+  {<5><6><7><8>cmtex8
+   <9>cmtex9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmtex10}{}
+\DeclareFontShape{OT1}{cmtex}{m}{it}
+  {<-> ssub * cmtt/m/it}{}
+\newcommand{\texfamily}{\fontfamily{cmtex}\selectfont}
+\DeclareFontShape{OT1}{cmtt}{bx}{n}
+  {<5><6><7><8>cmtt8
+   <9>cmbtt9
+   <10><10.95><12><14.4><17.28><20.74><24.88>cmbtt10}{}
+\DeclareFontShape{OT1}{cmtex}{bx}{n}
+  {<-> ssub * cmtt/bx/n}{}
+\newcommand{\tex}[1]{\text{\texfamily#1}}	% NEU
+
+\newcommand{\Sp}{\hskip.33334em\relax}
+
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+\newcommand{\anonymous}{\kern0.06em \vbox{\hrule\@width.5em}}
+\newcommand{\plus}{\mathbin{+\!\!\!+}}
+\newcommand{\bind}{\mathbin{>\!\!\!>\mkern-6.7mu=}}
+\newcommand{\rbind}{\mathbin{=\mkern-6.7mu<\!\!\!<}}% suggested by Neil Mitchell
+\newcommand{\sequ}{\mathbin{>\!\!\!>}}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\usepackage{polytable}
+
+%mathindent has to be defined
+\@ifundefined{mathindent}%
+  {\newdimen\mathindent\mathindent\leftmargini}%
+  {}%
+
+\def\resethooks{%
+  \global\let\SaveRestoreHook\empty
+  \global\let\ColumnHook\empty}
+\newcommand*{\savecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\savecolumns[#1]}}
+\newcommand*{\restorecolumns}[1][default]%
+  {\g@addto@macro\SaveRestoreHook{\restorecolumns[#1]}}
+\newcommand*{\aligncolumn}[2]%
+  {\g@addto@macro\ColumnHook{\column{#1}{#2}}}
+
+\resethooks
+
+\newcommand{\onelinecommentchars}{\quad-{}- }
+\newcommand{\commentbeginchars}{\enskip\{-}
+\newcommand{\commentendchars}{-\}\enskip}
+
+\newcommand{\visiblecomments}{%
+  \let\onelinecomment=\onelinecommentchars
+  \let\commentbegin=\commentbeginchars
+  \let\commentend=\commentendchars}
+
+\newcommand{\invisiblecomments}{%
+  \let\onelinecomment=\empty
+  \let\commentbegin=\empty
+  \let\commentend=\empty}
+
+\visiblecomments
+
+\newlength{\blanklineskip}
+\setlength{\blanklineskip}{0.66084ex}
+
+\newcommand{\hsindent}[1]{\quad}% default is fixed indentation
+\let\hspre\empty
+\let\hspost\empty
+\newcommand{\NB}{\textbf{NB}}
+\newcommand{\Todo}[1]{$\langle$\textbf{To do:}~#1$\rangle$}
+
+\EndFmtInput
+\makeatother
+%
+%
+%
+%
+%
+%
+% This package provides two environments suitable to take the place
+% of hscode, called "plainhscode" and "arrayhscode". 
+%
+% The plain environment surrounds each code block by vertical space,
+% and it uses \abovedisplayskip and \belowdisplayskip to get spacing
+% similar to formulas. Note that if these dimensions are changed,
+% the spacing around displayed math formulas changes as well.
+% All code is indented using \leftskip.
+%
+% Changed 19.08.2004 to reflect changes in colorcode. Should work with
+% CodeGroup.sty.
+%
+\ReadOnlyOnce{polycode.fmt}%
+\makeatletter
+
+\newcommand{\hsnewpar}[1]%
+  {{\parskip=0pt\parindent=0pt\par\vskip #1\noindent}}
+
+% can be used, for instance, to redefine the code size, by setting the
+% command to \small or something alike
+\newcommand{\hscodestyle}{}
+
+% The command \sethscode can be used to switch the code formatting
+% behaviour by mapping the hscode environment in the subst directive
+% to a new LaTeX environment.
+
+\newcommand{\sethscode}[1]%
+  {\expandafter\let\expandafter\hscode\csname #1\endcsname
+   \expandafter\let\expandafter\endhscode\csname end#1\endcsname}
+
+% "compatibility" mode restores the non-polycode.fmt layout.
+
+\newenvironment{compathscode}%
+  {\par\noindent
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed\)%
+   \par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\compaths}{\sethscode{compathscode}}
+
+% "plain" mode is the proposed default.
+% It should now work with \centering.
+% This required some changes. The old version
+% is still available for reference as oldplainhscode.
+
+\newenvironment{plainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\hspre\(\let\hspost\)%
+   \pboxed}%
+  {\endpboxed%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newenvironment{oldplainhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+% Here, we make plainhscode the default environment.
+
+\newcommand{\plainhs}{\sethscode{plainhscode}}
+\newcommand{\oldplainhs}{\sethscode{oldplainhscode}}
+\plainhs
+
+% The arrayhscode is like plain, but makes use of polytable's
+% parray environment which disallows page breaks in code blocks.
+
+\newenvironment{arrayhscode}%
+  {\hsnewpar\abovedisplayskip
+   \advance\leftskip\mathindent
+   \hscodestyle
+   \let\\=\@normalcr
+   \(\parray}%
+  {\endparray\)%
+   \hsnewpar\belowdisplayskip
+   \ignorespacesafterend}
+
+\newcommand{\arrayhs}{\sethscode{arrayhscode}}
+
+% The mathhscode environment also makes use of polytable's parray 
+% environment. It is supposed to be used only inside math mode 
+% (I used it to typeset the type rules in my thesis).
+
+\newenvironment{mathhscode}%
+  {\parray}{\endparray}
+
+\newcommand{\mathhs}{\sethscode{mathhscode}}
+
+% texths is similar to mathhs, but works in text mode.
+
+\newenvironment{texthscode}%
+  {\(\parray}{\endparray\)}
+
+\newcommand{\texths}{\sethscode{texthscode}}
+
+% The framed environment places code in a framed box.
+
+\def\codeframewidth{\arrayrulewidth}
+\RequirePackage{calc}
+
+\newenvironment{framedhscode}%
+  {\parskip=\abovedisplayskip\par\noindent
+   \hscodestyle
+   \arrayrulewidth=\codeframewidth
+   \tabular{@{}|p{\linewidth-2\arraycolsep-2\arrayrulewidth-2pt}|@{}}%
+   \hline\framedhslinecorrect\\{-1.5ex}%
+   \let\endoflinesave=\\
+   \let\\=\@normalcr
+   \(\pboxed}%
+  {\endpboxed\)%
+   \framedhslinecorrect\endoflinesave{.5ex}\hline
+   \endtabular
+   \parskip=\belowdisplayskip\par\noindent
+   \ignorespacesafterend}
+
+\newcommand{\framedhslinecorrect}[2]%
+  {#1[#2]}
+
+\newcommand{\framedhs}{\sethscode{framedhscode}}
+
+% The inlinehscode environment is an experimental environment
+% that can be used to typeset displayed code inline.
+
+\newenvironment{inlinehscode}%
+  {\(\def\column##1##2{}%
+   \let\>\undefined\let\<\undefined\let\\\undefined
+   \newcommand\>[1][]{}\newcommand\<[1][]{}\newcommand\\[1][]{}%
+   \def\fromto##1##2##3{##3}%
+   \def\nextline{}}{\) }%
+
+\newcommand{\inlinehs}{\sethscode{inlinehscode}}
+
+% The joincode environment is a separate environment that
+% can be used to surround and thereby connect multiple code
+% blocks.
+
+\newenvironment{joincode}%
+  {\let\orighscode=\hscode
+   \let\origendhscode=\endhscode
+   \def\endhscode{\def\hscode{\endgroup\def\@currenvir{hscode}\\}\begingroup}
+   %\let\SaveRestoreHook=\empty
+   %\let\ColumnHook=\empty
+   %\let\resethooks=\empty
+   \orighscode\def\hscode{\endgroup\def\@currenvir{hscode}}}%
+  {\origendhscode
+   \global\let\hscode=\orighscode
+   \global\let\endhscode=\origendhscode}%
+
+\makeatother
+\EndFmtInput
+%
+\def\ana#1{\mathopen{[\!(}#1\mathclose{)\!]}}
+
+%---------------------------------------------------------------------------
+
+\title{
+            Cálculo de Programas
+\\
+        Trabalho Prático
+\\
+        MiEI+LCC --- 2017/18
+}
+
+\author{
+        \dium
+\\
+        Universidade do Minho
+}
+
+
+\date\mydate
+
+\makeindex
+
+\begin{document}
+
+\maketitle
+
+\begin{center}\large
+\begin{tabular}{ll}
+\textbf{Grupo} nr. & 109
+\\\hline
+a82088 & Luís Tiago Machado Braga
+\\
+a82300 & João Filipe da Costa Nunes
+\\
+a82298 & Luís Guilherme Gonçalves Macedo da Silva Martins
+\end{tabular}
+\end{center}
+
+\section{Preâmbulo}
+
+A disciplina de \CP\ tem como objectivo principal ensinar
+a progra\-mação de computadores como uma disciplina científica. Para isso
+parte-se de um repertório de \emph{combinadores} que formam uma álgebra da
+programação (conjunto de leis universais e seus corolários) e usam-se esses
+combinadores para construir programas \emph{composicionalmente}, isto é,
+agregando programas já existentes.
+  
+Na sequência pedagógica dos planos de estudo dos dois cursos que têm esta
+disciplina, restringe-se a aplicação deste método à programação funcional
+em \Haskell. Assim, 
+o presente trabalho prático coloca os alunos perante problemas
+concretos que deverão ser implementados em \Haskell.
+Há ainda um outro objectivo: o de ensinar a documentar programas e
+a produzir textos técnico-científicos de qualidade.
+
+\section{Documentação}
+Para cumprir de forma integrada os objectivos enunciados acima vamos recorrer
+a uma técnica de programa\-ção dita ``\litp{literária}'' \cite{Kn92}, cujo
+princípio base é o seguinte:
+\begin{quote}\em
+Um programa e a sua documentação devem coincidir.
+\end{quote}
+Por outras palavras, o código fonte e a documentação de um programa deverão estar no
+mesmo ficheiro.
+
+O ficheiro \texttt{cp1718t.pdf} que está a ler é já um exemplo de \litp{programação
+literária}: foi gerado a partir do texto fonte \texttt{cp1718t.lhs}\footnote{O
+suffixo `lhs' quer dizer \emph{\lhaskell{literate Haskell}}.} que encontrará
+no \MaterialPedagogico\ desta disciplina descompactando o ficheiro \texttt{cp1718t.zip}
+e executando
+\begin{Verbatim}[fontsize=\small]
+    $ lhs2TeX cp1718t.lhs > cp1718t.tex
+    $ pdflatex cp1718t
+\end{Verbatim}
+em que \href{https://hackage.haskell.org/package/lhs2tex}{\texttt\LhsToTeX} é
+um pre-processador que faz ``pretty printing''
+de código Haskell em \Latex\ e que deve desde já instalar executando
+\begin{Verbatim}[fontsize=\small]
+    $ cabal install lhs2tex
+\end{Verbatim}
+Por outro lado, o mesmo ficheiro \texttt{cp1718t.lhs} é executável e contém
+o ``kit'' básico, escrito em \Haskell, para realizar o trabalho. Basta executar
+\begin{Verbatim}[fontsize=\small]
+    $ ghci cp1718t.lhs
+\end{Verbatim}
+
+
+\noindent Abra o ficheiro \texttt{cp1718t.lhs} no seu editor de texto preferido
+e verifique que assim é: todo o texto que se encontra dentro do ambiente
+\begin{quote}\small\tt
+\text{\ttfamily \char92{}begin\char123{}code\char125{}}
+\\ ... \\
+\text{\ttfamily \char92{}end\char123{}code\char125{}}
+\end{quote}
+vai ser seleccionado pelo \GHCi\ para ser executado.
+
+\section{Como realizar o trabalho}
+Este trabalho teórico-prático deve ser realizado por grupos de três alunos.
+Os detalhes da avaliação (datas para submissão do relatório e sua defesa
+oral) são os que forem publicados na \cp{página da disciplina} na \emph{internet}.
+
+Recomenda-se uma abordagem participativa dos membros do grupo
+de trabalho por forma a poderem responder às questões que serão colocadas
+na \emph{defesa oral} do relatório.
+
+Em que consiste, então, o \emph{relatório} a que se refere o parágrafo anterior?
+É a edição do texto que está a ser lido, preenchendo o anexo \ref{sec:resolucao}
+com as respostas. O relatório deverá conter ainda a identificação dos membros
+do grupo de trabalho, no local respectivo da folha de rosto.
+
+Para gerar o PDF integral do relatório deve-se ainda correr os comando seguintes,
+que actualizam a bibliografia (com \Bibtex) e o índice remissivo (com \Makeindex),
+\begin{Verbatim}[fontsize=\small]
+    $ bibtex cp1718t.aux
+    $ makeindex cp1718t.idx
+\end{Verbatim}
+e recompilar o texto como acima se indicou. Dever-se-á ainda instalar o utilitário
+\QuickCheck,
+que ajuda a validar programas em \Haskell, a biblioteca
+\href{https://hackage.haskell.org/package/JuicyPixels}{JuicyPixels} para processamento
+de imagens e a biblioteca \href{http://gloss.ouroborus.net/}{gloss} para geração de gráficos 2D:
+\begin{Verbatim}[fontsize=\small]
+    $ cabal install QuickCheck JuicyPixels gloss
+\end{Verbatim}
+Para testar uma propriedade \QuickCheck~\ensuremath{\Varid{prop}}, basta invocá-la com o comando:
+\begin{tabbing}\ttfamily
+~~~~~\char62{}~quickCheck~prop\\
+\ttfamily ~~~~~\char43{}\char43{}\char43{}~OK\char44{}~passed~100~tests\char46{}
+\end{tabbing}
+
+\section*{Problema 1}
+
+Segundo uma \href{https://www.jn.pt/economia/interior/compra-diaria-de-bitcoins-iguala-acoes-da-apple-9257302.html}{notícia do Jornal de Notícias}, 
+referente ao dia 12 de abril, \emph{``apenas numa hora, foram transacionadas 1.2 mil milhões de dólares em bitcoins. Nas últimas 24 horas, foram transacionados 8,5 mil milhões de dólares, num total de 24 mil milhões de dólares referentes às principais criptomoedas''}.
+
+De facto, é inquestionável que as criptomoedas, e em particular as bitcoin, vieram para ficar.
+%
+Várias moedas digitais, e em particular as bitcoin, usam a tecnologia de block chain
+para guardar e assegurar todas as transações relacionadas com a moeda.
+%
+Uma \href{https://en.bitcoin.it/wiki/Block_chain}{block chain} é uma coleção de blocos que registam os movimentos da moeda; a sua definição em Haskell é apresentada de seguida.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{37}{@{}>{\hspre}c<{\hspost}@{}}%
+\column{37E}{@{}l@{}}%
+\column{40}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{Blockchain}\mathrel{=}\Conid{Bc}\;\{\mskip1.5mu \Varid{bc}\mathbin{::}\Conid{Block}\mskip1.5mu\}{}\<[37]%
+\>[37]{}\mid {}\<[37E]%
+\>[40]{}\Conid{Bcs}\;\{\mskip1.5mu \Varid{bcs}\mathbin{::}(\Conid{Block},\Conid{Blockchain})\mskip1.5mu\}\;\mathbf{deriving}\;\Conid{Show}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Cada \href{https://en.bitcoin.it/wiki/Block}{bloco} numa block chain
+regista um número (mágico) único, o momento da execução, e uma lista de transações,
+tal como no código seguinte:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{Block}\mathrel{=}(\Conid{MagicNo},(\Conid{Time},\Conid{Transactions})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Cada \href{https://en.bitcoin.it/wiki/Transaction}{transação} 
+define a entidade de origem da transferência, o valor a ser transacionado,
+e a entidade destino (por esta ordem), tal como se define de seguida.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{Transaction}\mathrel{=}(\Conid{Entity},(\Conid{Value},\Conid{Entity})){}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Transactions}\mathrel{=}[\mskip1.5mu \Conid{Transaction}\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+A partir de uma block chain, é possível calcular o valor que cada entidade
+detém, tipicamente designado de ledger:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{Ledger}\mathrel{=}[\mskip1.5mu (\Conid{Entity},\Conid{Value})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Seguem as restantes definições Haskell para completar o código anterior.
+Note que \ensuremath{\Conid{Time}} representa o momento da transação, como o número de \href{https://currentmillis.com}{milisegundos} que passaram desde 1970.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{MagicNo}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Time}\mathrel{=}\Conid{Int}{}\<[18]%
+\>[18]{}\mbox{\onelinecomment  em milisegundos}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Entity}\mathrel{=}\Conid{String}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Value}\mathrel{=}\Conid{Int}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Neste contexto, implemente as seguintes funções:
+
+\begin{enumerate}
+\item Defina a função \ensuremath{\Varid{allTransactions}\mathbin{::}\Conid{Blockchain}\to \Conid{Transactions}}, como um catamorfismo, que calcula a lista com todas as transações numa dada block chain.
+
+
+\begin{propriedade}
+    As transações de uma block chain são as mesmas da block chain revertida:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop1a}\mathrel{=}\Varid{sort}\comp \Varid{allTransactions}\equiv\Varid{sort}\comp \Varid{allTransactions}\comp \Varid{reverseChain}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Note que a função \ensuremath{\Varid{sort}} é usada apenas para facilitar a comparação das listas.
+\end{propriedade}
+
+\item Defina a função \ensuremath{\Varid{ledger}\mathbin{::}\Conid{Blockchain}\to \Conid{Ledger}}, utilizando catamorfismos e/ou anamorfismos, que calcula o ledger (i.e., o valor disponível) de cada entidade numa uma dada block chain.
+    Note que as entidades podem ter valores negativos; de facto isso acontecerá para a primeira transação que executarem.
+
+
+\begin{propriedade}
+    O tamanho do ledger é inferior ou igual a duas vezes o tamanho de todas as transações:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop1b}\mathrel{=}\length \comp \Varid{ledger}\leq(\mathrm{2}\mathbin{*})\comp \length \comp \Varid{allTransactions}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+\begin{propriedade}
+    O ledger de uma block chain é igual ao ledger da sua inversa:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop1c}\mathrel{=}\Varid{sort}\comp \Varid{ledger}\equiv\Varid{sort}\comp \Varid{ledger}\comp \Varid{reverseChain}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+
+
+\item Defina a função \ensuremath{\Varid{isValidMagicNr}\mathbin{::}\Conid{Blockchain}\to \Conid{Bool}}, utilizando catamorfismos e/ou anamorfismos, que verifica se todos os números mágicos numa dada block chain são únicos.
+
+
+\begin{propriedade}
+    A concatenação de uma block chain com ela mesma nunca é válida em termos de números mágicos:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop1d}\mathrel{=}\neg \comp \Varid{isValidMagicNr}\comp \Varid{concChain}\comp \conj{\Varid{id}}{\Varid{id}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+\begin{propriedade}
+    Se uma block chain é válida em termos de números mágicos, então a sua inversa também o é:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop1e}\mathrel{=}\Varid{isValidMagicNr}\Rightarrow\Varid{isValidMagicNr}\comp \Varid{reverseChain}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+\end{enumerate}
+
+
+
+\section*{Problema 2}
+
+Uma estrutura de dados frequentemente utilizada para representação e processamento de imagens de forma eficiente são as denominadas \href{https://en.wikipedia.org/wiki/Quadtree}{quadtrees}.
+Uma \emph{quadtree} é uma árvore quaternária em que cada nodo tem quatro sub-árvores e cada folha representa um valor bi-dimensional.
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{QTree}\;\Varid{a}\mathrel{=}\Conid{Cell}\;\Varid{a}\;\Conid{Int}\;\Conid{Int}\mid \Conid{Block}\;(\Conid{QTree}\;\Varid{a})\;(\Conid{QTree}\;\Varid{a})\;(\Conid{QTree}\;\Varid{a})\;(\Conid{QTree}\;\Varid{a}){}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{deriving}\;(\Conid{Eq},\Conid{Show}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}
+\begin{subfigure}{0.3\textwidth}
+\begin{tabbing}\ttfamily
+~\char40{}~0~0~0~0~0~0~0~0~\char41{}\\
+\ttfamily ~\char40{}~0~0~0~0~0~0~0~0~\char41{}\\
+\ttfamily ~\char40{}~0~0~0~0~1~1~1~0~\char41{}\\
+\ttfamily ~\char40{}~0~0~0~0~1~1~0~0~\char41{}\\
+\ttfamily ~\char40{}~1~1~1~1~1~1~0~0~\char41{}\\
+\ttfamily ~\char40{}~1~1~1~1~1~1~0~0~\char41{}\\
+\ttfamily ~\char40{}~1~1~1~1~0~0~0~0~\char41{}\\
+\ttfamily ~\char40{}~1~1~1~1~0~0~0~1~\char41{}
+\end{tabbing}
+\caption{Matriz de exemplo \ensuremath{\Varid{bm}}.}
+\label{fig:bm}
+\end{subfigure}
+\begin{subfigure}{0.7\textwidth}
+\begin{tabbing}\ttfamily
+~Block\\
+\ttfamily ~~\char40{}Cell~0~4~4\char41{}~\char40{}Block\\
+\ttfamily ~~~\char40{}Cell~0~2~2\char41{}~\char40{}Cell~0~2~2\char41{}~\char40{}Cell~1~2~2\char41{}~\char40{}Block\\
+\ttfamily ~~~~\char40{}Cell~1~1~1\char41{}~\char40{}Cell~0~1~1\char41{}~\char40{}Cell~0~1~1\char41{}~\char40{}Cell~0~1~1\char41{}\char41{}\char41{}\\
+\ttfamily ~~\char40{}Cell~1~4~4\char41{}\\
+\ttfamily ~~\char40{}Block\\
+\ttfamily ~~~\char40{}Cell~1~2~2\char41{}~\char40{}Cell~0~2~2\char41{}~\char40{}Cell~0~2~2\char41{}~\char40{}Block\\
+\ttfamily ~~~~\char40{}Cell~0~1~1\char41{}~\char40{}Cell~0~1~1\char41{}~\char40{}Cell~0~1~1\char41{}~\char40{}Cell~1~1~1\char41{}\char41{}\char41{}
+\end{tabbing}
+\caption{Quadtree de exemplo \ensuremath{\Varid{qt}}.}
+\label{fig:qt}
+\end{subfigure}
+\caption{Exemplos de representações de bitmaps.}
+\end{figure}
+
+Uma imagem monocromática em formato bitmap pode ser representada como uma
+matriz de bits\footnote{Cf.\ módulo \href{https://hackage.haskell.org/package/matrix}{\ensuremath{\Conid{\Conid{Data}.Matrix}}}.},
+tal como se exemplifica na Figura~\ref{fig:bm}.
+
+O anamorfismo \ensuremath{\Varid{bm2qt}} converte um bitmap em forma matricial na sua codificação eficiente em quadtrees, e o catamorfismo \ensuremath{\Varid{qt2bm}} executa a operação inversa:
+
+\adjustbox{valign=t}{\begin{minipage}{.5\textwidth} %
+\begingroup
+\leftskip-1.5em
+\rightskip\leftskip
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{6}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{bm2qt}\mathbin{::}(\Conid{Eq}\;\Varid{a})\Rightarrow \Conid{Matrix}\;\Varid{a}\to \Conid{QTree}\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{bm2qt}\mathrel{=}\ana{\Varid{f}}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;\Varid{m}\mathrel{=}\mathbf{if}\;\Varid{one}\;\mathbf{then}\;i_1\;\Varid{u}\;\mathbf{else}\;i_2\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d}))){}\<[E]%
+\\
+\>[5]{}\hsindent{1}{}\<[6]%
+\>[6]{}\mathbf{where}\;{}\<[13]%
+\>[13]{}\Varid{x}\mathrel{=}(\Varid{nub}\comp \Varid{toList})\;\Varid{m}{}\<[E]%
+\\
+\>[13]{}\Varid{u}\mathrel{=}(\Varid{head}\;\Varid{x},(\Varid{ncols}\;\Varid{m},\Varid{nrows}\;\Varid{m})){}\<[E]%
+\\
+\>[13]{}\Varid{one}\mathrel{=}(\Varid{ncols}\;\Varid{m}\equiv \mathrm{1}\mathrel{\vee}\Varid{nrows}\;\Varid{m}\equiv \mathrm{1}\mathrel{\vee}\length \;\Varid{x}\equiv \mathrm{1}){}\<[E]%
+\\
+\>[13]{}(\Varid{a},\Varid{b},\Varid{c},\Varid{d})\mathrel{=}\Varid{splitBlocks}\;(\Varid{nrows}\;\Varid{m}\mathbin{\Varid{`div`}}\mathrm{2})\;(\Varid{ncols}\;\Varid{m}\mathbin{\Varid{`div`}}\mathrm{2})\;\Varid{m}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\endgroup
+\end{minipage}} %
+\adjustbox{valign=t}{\begin{minipage}{.5\textwidth} %
+\begingroup
+\leftskip-2em
+\rightskip\leftskip
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{qt2bm}\mathbin{::}(\Conid{Eq}\;\Varid{a})\Rightarrow \Conid{QTree}\;\Varid{a}\to \Conid{Matrix}\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{qt2bm}\mathrel{=}\cata{\alt{\Varid{f}}{\Varid{g}}}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{i},\Varid{j}))\mathrel{=}matrix\;\Varid{j}\;\Varid{i}\;\underline{\Varid{k}}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\endgroup
+\end{minipage}}
+
+O algoritmo \ensuremath{\Varid{bm2qt}} particiona recursivamente a imagem em $4$ blocos e termina produzindo folhas para matrizes unitárias ou quando todos os píxeis de um sub-bloco têm a mesma côr.
+Para a matriz \ensuremath{\Varid{bm}} de exemplo, a quadtree correspondente \ensuremath{\Varid{qt}\mathrel{=}\Varid{bm2qt}\;\Varid{bm}} é ilustrada na Figura~\ref{fig:qt}.
+
+\begin{figure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/person.png}
+\caption{Bitmap de exemplo.}
+\label{fig:person}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[height=0.2\linewidth]{cp1718t_media/person90.png}
+\caption{Rotação.}
+\label{fig:person90}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.4\linewidth]{cp1718t_media/personx2.png}
+\caption{Redimensionamento.}
+\label{fig:personx2}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/personinv.png}
+\caption{Inversão de cores.}
+\label{fig:personinv}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/person1.png}
+\caption{Compresão de $1$ nível.}
+\label{fig:person1}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/person2.png}
+\caption{Compresão de $2$ níveis.}
+\label{fig:person2}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/person3.png}
+\caption{Compresão de $3$ níveis.}
+\label{fig:person3}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/person4.png}
+\caption{Compresão de $4$ níveis.}
+\label{fig:person4}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/personOut1.png}
+\caption{Bitmap de contorno.}
+\label{fig:personOut1}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{cp1718t_media/personOut2.png}
+\caption{Bitmap com contorno.}
+\label{fig:personOut2}
+\end{subfigure}
+%
+\caption{Manipulação de uma figura bitmap utilizando quadtrees.}
+\end{figure}
+
+Imagens a cores podem ser representadas como matrizes de píxeis segundo o código de cores \href{https://en.wikipedia.org/wiki/RGBA_color_space}{RGBA}, codificado no tipo \href{https://hackage.haskell.org/package/JuicyPixels-3.2.9.5/docs/Codec-Picture.html#t:PixelRGBA8}{\ensuremath{\Conid{PixelRGBA8}}} em que cada pixel é um quádruplo de valores inteiros $(red,green,blue,alpha)$ contidos entre $0$ e $255$.
+Atente em alguns exemplos de cores:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{10}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{whitePx}{}\<[10]%
+\>[10]{}\mathrel{=}\Conid{PixelRGBA8}\;\mathrm{255}\;\mathrm{255}\;\mathrm{255}\;\mathrm{255}{}\<[E]%
+\\
+\>[B]{}\Varid{blackPx}{}\<[10]%
+\>[10]{}\mathrel{=}\Conid{PixelRGBA8}\;\mathrm{0}\;\mathrm{0}\;\mathrm{0}\;\mathrm{255}{}\<[E]%
+\\
+\>[B]{}\Varid{redPx}{}\<[10]%
+\>[10]{}\mathrel{=}\Conid{PixelRGBA8}\;\mathrm{255}\;\mathrm{0}\;\mathrm{0}\;\mathrm{255}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+O módulo \ensuremath{\Conid{BMP}}, disponibilizado juntamente com o enunciado, fornece funções para processar ficheiros de imagem bitmap como matrizes:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[5]{}\Varid{readBMP}\mathbin{::}\Conid{FilePath}\to \fun{IO}\;(\Conid{Matrix}\;\Conid{PixelRGBA8}){}\<[E]%
+\\
+\>[5]{}\Varid{writeBMP}\mathbin{::}\Conid{FilePath}\to \Conid{Matrix}\;\Conid{PixelRGBA8}\to \fun{IO}\;(){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Teste, por exemplo, no \ensuremath{\Conid{GHCi}}, carregar a Figura~\ref{fig:person}:
+\begin{tabbing}\ttfamily
+~~~~~\char62{}~readBMP~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}
+\end{tabbing}
+
+Esta questão aborda operações de processamento de imagens utilizando quadtrees:
+\begin{enumerate}
+    \item Defina as funções \ensuremath{\Varid{rotateQTree}\mathbin{::}\Conid{QTree}\;\Varid{a}\to \Conid{QTree}\;\Varid{a}}, \ensuremath{\Varid{scaleQTree}\mathbin{::}\Conid{Int}\to \Conid{QTree}\;\Varid{a}\to \Conid{QTree}\;\Varid{a}} e \ensuremath{\Varid{invertQTree}\mathbin{::}\Conid{QTree}\;\Varid{a}\to \Conid{QTree}\;\Varid{a}}, como catamorfismos e/ou anamorfismos, que rodam\footnote{Segundo um ângulo de $90º$ no sentido dos ponteiros do relógio.}, redimensionam \footnote{Multiplicando o seu tamanho pelo valor recebido.} e invertem as cores de uma quadtree\footnote{Um pixel pode ser invertido calculando $255 - c$ para cada componente $c$ de cor RGB, exceptuando o componente alpha.}, respectivamente.
+    Tente produzir imagens similares às Figuras~\ref{fig:person90}, \ref{fig:personx2} e \ref{fig:personinv}:
+        \begin{tabbing}\ttfamily
+~~~~~\char62{}~rotateBMP~~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}person90\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~scaleBMP~2~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}personx2\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~invertBMP~~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}personinv\char46{}bmp\char34{}
+\end{tabbing}
+
+\begin{propriedade}
+        Rodar uma quadtree é equivalente a rodar a matriz correspondente:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop2c}\mathrel{=}\Varid{rotateMatrix}\comp \Varid{qt2bm}\equiv\Varid{qt2bm}\comp \Varid{rotateQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+    \end{propriedade}
+\begin{propriedade}
+    Redimensionar uma imagem altera o seu tamanho na mesma proporção:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop2d}\;(\Conid{Nat}\;\Varid{s})\mathrel{=}\Varid{sizeQTree}\comp \Varid{scaleQTree}\;\Varid{s}\equiv((\Varid{s}\mathbin{*})\times(\Varid{s}\mathbin{*}))\comp \Varid{sizeQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+\begin{propriedade}
+    Inverter as cores de uma quadtree preserva a sua estrutura:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop2e}\mathrel{=}\Varid{shapeQTree}\comp \Varid{invertQTree}\equiv\Varid{shapeQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+    
+    \item Defina a função \ensuremath{\Varid{compressQTree}\mathbin{::}\Conid{Int}\to \Conid{QTree}\;\Varid{a}\to \Conid{QTree}\;\Varid{a}}, utilizando catamorfismos e/ou anamorfismos, que comprime uma quadtree cortando folhas da árvore para reduzir a sua profundidade num dado número de níveis.
+    Tente produzir imagens similares (mas não necessariamente iguais) às Figuras~\ref{fig:person1}, \ref{fig:person2}, \ref{fig:person3} e \ref{fig:person4}:
+        \begin{tabbing}\ttfamily
+~~~~~\char62{}~compressBMP~1~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}person1\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~compressBMP~2~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}person2\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~compressBMP~3~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}person3\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~compressBMP~4~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}person4\char46{}bmp\char34{}
+\end{tabbing}
+    \begin{propriedade}
+        A quadtree comprimida tem profundidade igual à da quadtree original menos a taxa de compressão:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop2f}\;(\Conid{Nat}\;\Varid{n})\mathrel{=}\Varid{depthQTree}\comp \Varid{compressQTree}\;\Varid{n}\equiv(\mathbin{-}\Varid{n})\comp \Varid{depthQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+    \end{propriedade}
+    
+
+    \item Defina a função \ensuremath{\Varid{outlineQTree}\mathbin{::}(\Varid{a}\to \Conid{Bool})\to \Conid{QTree}\;\Varid{a}\to \Conid{Matrix}\;\Conid{Bool}}, utilizando catamorfismos e/ou anamorfismos, que recebe uma função que determina quais os píxeis de fundo e converte uma quadtree numa matriz monocromática, de forma a desenhar o contorno de uma \href{https://en.wikipedia.org/wiki/Polygon_mesh}{malha poligonal} contida na imagem.
+        Tente produzir imagens similares (mas não necessariamente iguais) às Figuras~\ref{fig:personOut1} e \ref{fig:personOut2}:
+            \begin{tabbing}\ttfamily
+~~~~~\char62{}~outlineBMP~~~~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}personOut1\char46{}bmp\char34{}\\
+\ttfamily ~~~~~\char62{}~addOutlineBMP~\char34{}cp1718t\char95{}media\char47{}person\char46{}bmp\char34{}~\char34{}personOut2\char46{}bmp\char34{}
+\end{tabbing}
+    \begin{propriedade}
+        A matriz de contorno tem dimensões iguais às da quadtree:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop2g}\mathrel{=}\Varid{sizeQTree}\equiv\Varid{sizeMatrix}\comp \Varid{outlineQTree}\;(\mathbin{<}\mathrm{0}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+    \end{propriedade}
+    \begin{teste}
+        Contorno da quadtree de exemplo \ensuremath{\Varid{qt}}:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{teste2a}\mathrel{=}\Varid{outlineQTree}\;(\equiv \mathrm{0})\;\Varid{qt}\equiv \Varid{qtOut}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+    \end{teste}
+
+\end{enumerate}
+
+\section*{Problema 3}
+O cálculo das combinações de \ensuremath{\Varid{n}} \ensuremath{\Varid{k}}-a-\ensuremath{\Varid{k}},
+\begin{eqnarray}
+    \ensuremath{\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\mathrel{=}\frac{{\Varid{n}!}}{{\Varid{k}!}\mathbin{*}{(\Varid{n}\mathbin{-}\Varid{k})!}}}
+    \label{eq:bin} 
+\end{eqnarray}
+envolve três factoriais. Recorrendo à \material{lei de recursividade múltipla} do cálculo
+de programas, é possível escrever o mesmo programa como um simples ciclo-for
+onde se fazem apenas multiplicações e somas. Para isso, começa-se por estruturar
+a definição dada da forma seguinte,
+\begin{eqnarray*}
+    \ensuremath{\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\mathrel{=}\Varid{h}\;\Varid{k}\;(\Varid{n}\mathbin{-}\Varid{k})}
+\end{eqnarray*}
+onde
+\begin{eqnarray*}
+\start
+       \ensuremath{\Varid{h}\;\Varid{k}\;\Varid{d}\mathrel{=}\frac{\Varid{f}\;\Varid{k}\;\Varid{d}}{\Varid{g}\;\Varid{d}}}
+\more
+       \ensuremath{\Varid{f}\;\Varid{k}\;\Varid{d}\mathrel{=}\frac{{(\Varid{d}\mathbin{+}\Varid{k})!}}{{\Varid{k}!}}}
+\more
+       \ensuremath{\Varid{g}\;\Varid{d}\mathrel{=}{\Varid{d}!}} 
+\end{eqnarray*}
+assumindo-se \ensuremath{\Varid{d}\mathrel{=}\Varid{n}\mathbin{-}\Varid{k}\geq \mathrm{0}}.
+%
+É fácil de ver que \ensuremath{\Varid{f}\;\Varid{k}} e \ensuremath{\Varid{g}} se desdobram em 4 funções mutuamente recursivas, a saber
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{f}\;\Varid{k}\;\mathrm{0}\mathrel{=}\mathrm{1}{}\<[E]%
+\\
+\>[B]{}\Varid{f}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\underbrace{(\Varid{d}\mathbin{+}\Varid{k}\mathbin{+}\mathrm{1})}_{\Varid{l}\;\Varid{k}\;\Varid{d}}\mathbin{*}\Varid{f}\;\Varid{k}\;\Varid{d}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{l}\;\Varid{k}\;\mathrm{0}\mathrel{=}\Varid{k}\mathbin{+}\mathrm{1}{}\<[E]%
+\\
+\>[B]{}\Varid{l}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{l}\;\Varid{k}\;\Varid{d}\mathbin{+}\mathrm{1}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+e 
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{g}\;\mathrm{0}\mathrel{=}\mathrm{1}{}\<[E]%
+\\
+\>[B]{}\Varid{g}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\underbrace{(\Varid{d}\mathbin{+}\mathrm{1})}_{\Varid{s}\;\Varid{d}}\mathbin{*}\Varid{g}\;\Varid{d}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{s}\;\mathrm{0}\mathrel{=}\mathrm{1}{}\<[E]%
+\\
+\>[B]{}\Varid{s}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{s}\;\Varid{d}\mathbin{+}\mathrm{1}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+A partir daqui alguém derivou a seguinte implementação:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\mathrel{=}\Varid{h}\;\Varid{k}\;(\Varid{n}\mathbin{-}\Varid{k})\;\mathbf{where}\;{}\<[28]%
+\>[28]{}\Varid{h}\;\Varid{k}\;\Varid{n}\mathrel{=}\mathbf{let}\;(\Varid{a},\anonymous ,\Varid{b},\anonymous )\mathrel{=}\mathsf{for}\ \Varid{loop}\ (\Varid{base}\;\Varid{k})\;\Varid{n}\;\mathbf{in}\;\Varid{a}\mathbin{/}\Varid{b}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Aplicando a lei da recursividade múltipla para \ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}} e para
+\ensuremath{\conj{\Varid{g}}{\Varid{s}}} e combinando os resultados com a \material{lei de banana-split},
+derive as funções \ensuremath{\Varid{base}\;\Varid{k}} e \ensuremath{\Varid{loop}} que são usadas como auxiliares acima.
+
+\begin{propriedade}
+Verificação que \ensuremath{\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)} coincide com a sua especificação (\ref{eq:bin}):
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop3}\;(\Conid{NonNegative}\;\Varid{n})\;(\Conid{NonNegative}\;\Varid{k})\mathrel{=}\Varid{k}\leq \Varid{n}\Rightarrow\Big(\vcenter{\xymatrix@R=1pt{\Varid{n}\\\Varid{k}}}\Big)\equiv {\Varid{n}!}\mathbin{/}({\Varid{k}!}\mathbin{*}{(\Varid{n}\mathbin{-}\Varid{k})!}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+\section*{Problema 4}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{cp1718t_media/pythagoras-tree1.png}
+\end{center}
+\caption{Passos de construção de uma árvore de Pitágoras de ordem $3$.}
+\label{fig:pitagoras1}
+\end{figure}
+
+\href{https://en.wikipedia.org/wiki/Fractal}{Fractais} são formas geométricas que podem ser construídas recursivamente de acordo com um conjunto de equações matemáticas.
+Um exemplo clássico de um fractal são as \href{https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal)}{árvores de Pitágoras}.
+A construção de uma árvore de Pitágoras começa com um quadrado, ao qual se unem dois quadrados redimensionados pela escala $\sqrt{2}/2$, de forma a que os cantos dos $3$ quadrados coincidam e formem um triângulo rectângulo isósceles.
+Este procedimento é repetido recursivamente de acordo com uma dada ordem, definida como um número natural (Figura~\ref{fig:pitagoras1}).
+
+Uma árvore de Pitágoras pode ser codificada em Haskell como uma full tree contendo quadrados nos nodos e nas folhas, sendo um quadrado definido simplesmente pelo tamanho do seu lado:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{FTree}\;\Varid{a}\;\Varid{b}\mathrel{=}\Conid{Unit}\;\Varid{b}\mid \Conid{Comp}\;\Varid{a}\;(\Conid{FTree}\;\Varid{a}\;\Varid{b})\;(\Conid{FTree}\;\Varid{a}\;\Varid{b})\;\mathbf{deriving}\;(\Conid{Eq},\Conid{Show}){}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{PTree}\mathrel{=}\Conid{FTree}\;\Conid{Square}\;\Conid{Square}{}\<[E]%
+\\
+\>[B]{}\mathbf{type}\;\Conid{Square}\mathrel{=}\Conid{Float}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{enumerate}
+    \item Defina a função \ensuremath{\Varid{generatePTree}\mathbin{::}\Conid{Int}\to \Conid{PTree}}, como um anamorfismo, que gera uma árvore de Pitágoras para uma dada ordem.
+
+
+\begin{propriedade}
+    Uma árvore de Pitágoras tem profundidade igual à sua ordem:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop4a}\;(\Conid{SmallNat}\;\Varid{n})\mathrel{=}(\Varid{depthFTree}\comp \Varid{generatePTree})\;\Varid{n}\equiv \Varid{n}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+\begin{propriedade}
+    Uma árvore de Pitágoras está sempre balanceada:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{prop4b}\;(\Conid{SmallNat}\;\Varid{n})\mathrel{=}(\Varid{isBalancedFTree}\comp \Varid{generatePTree})\;\Varid{n}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{propriedade}
+
+\item Defina a função \ensuremath{\Varid{drawPTree}\mathbin{::}\Conid{PTree}\to [\mskip1.5mu \Conid{Picture}\mskip1.5mu]}, utilizando catamorfismos e/ou anamorfismos, que anima incrementalmente os passos de construção de uma árvore de Pitágoras recorrendo à biblioteca \href{https://hackage.haskell.org/package/gloss}{gloss}.
+    Anime a sua solução:
+\begin{tabbing}\ttfamily
+~~~~~\char62{}~animatePTree~3
+\end{tabbing}
+
+    
+\end{enumerate}
+
+\section*{Problema 5}
+
+Uma das áreas em maior expansão no campo da informática é a análise de dados
+e  \href{https://www.mathworks.com/discovery/machine-learning.html}{machine learning}. Esta questão aborda um \emph{mónade} que ajuda
+a fazer, de forma simples, as operações básicas dessas técnicas. Esse mónade
+é conhecido por \emph{bag}, \emph{saco} ou \emph{multi-conjunto}, permitindo
+que os elementos de um conjunto tenham multiplicidades associadas. Por exemplo,
+seja
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{Marble}\mathrel{=}\Conid{Red}\mid \Conid{Pink}\mid \Conid{Green}\mid \Conid{Blue}\mid \Conid{White}\;\mathbf{deriving}\;(\Conid{Read},\Conid{Show},\Conid{Eq},\Conid{Ord}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+um tipo dado.\footnote{``Marble" traduz para ``berlinde" em português.}
+A lista \ensuremath{[\mskip1.5mu \Conid{Pink},\Conid{Green},\Conid{Red},\Conid{Blue},\Conid{Green},\Conid{Red},\Conid{Green},\Conid{Pink},\Conid{Blue},\Conid{White}\mskip1.5mu]} tem elementos
+repetidos. Assumindo que a ordem não é importante, essa lista corresponde ao saco
+\begin{quote}\small
+\begin{tabbing}\ttfamily
+~\char123{}~Red~\char124{}\char45{}\char62{}~2~\char44{}~Pink~\char124{}\char45{}\char62{}~2~\char44{}~Green~\char124{}\char45{}\char62{}~3~\char44{}~Blue~\char124{}\char45{}\char62{}~2~\char44{}~White~\char124{}\char45{}\char62{}~1~\char125{}
+\end{tabbing}
+\end{quote}
+que habita o tipo genérico dos ``bags":
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{data}\;\Conid{Bag}\;\Varid{a}\mathrel{=}\Conid{B}\;[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]\;\mathbf{deriving}\;(\Conid{Ord}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+O mónade que vamos construir sobre este tipo de dados faz a gestão automática das multiciplidades.
+Por exemplo, seja dada a função que dá o peso de cada berlinde em gramas:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{20}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{marbleWeight}\mathbin{::}\Conid{Marble}\to \Conid{Int}{}\<[E]%
+\\
+\>[B]{}\Varid{marbleWeight}\;\Conid{Red}{}\<[20]%
+\>[20]{}\mathrel{=}\mathrm{3}{}\<[E]%
+\\
+\>[B]{}\Varid{marbleWeight}\;\Conid{Pink}{}\<[20]%
+\>[20]{}\mathrel{=}\mathrm{2}{}\<[E]%
+\\
+\>[B]{}\Varid{marbleWeight}\;\Conid{Green}\mathrel{=}\mathrm{3}{}\<[E]%
+\\
+\>[B]{}\Varid{marbleWeight}\;\Conid{Blue}{}\<[20]%
+\>[20]{}\mathrel{=}\mathrm{6}{}\<[E]%
+\\
+\>[B]{}\Varid{marbleWeight}\;\Conid{White}\mathrel{=}\mathrm{2}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Então, se quisermos saber quantos \emph{berlindes} temos, de cada \emph{peso}, não teremos que fazer contas:
+basta calcular
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{marbleWeights}\mathrel{=}\mathsf{fmap}\;\Varid{marbleWeight}\;\Varid{bagOfMarbles}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+onde \ensuremath{\Varid{bagOfMarbles}} é o saco de berlindes referido acima, obtendo-se:
+\begin{quote}\small
+    \text{\ttfamily \char123{}~2~\char124{}\char45{}\char62{}~3~\char44{}~3~\char124{}\char45{}\char62{}~5~\char44{}~6~\char124{}\char45{}\char62{}~2~\char125{}}.
+\end{quote}
+%
+Mais ainda, se quisermos saber o total de berlindes em \ensuremath{\Varid{bagOfMarbles}} basta
+calcular \ensuremath{\mathsf{fmap}\;(\mathbin{!})\;\Varid{bagOfMarbles}} obtendo-se \text{\ttfamily \char123{}~\char40{}\char41{}~\char124{}\char45{}\char62{}~10~\char125{}}; isto é,
+o saco tem \ensuremath{\mathrm{10}} berlindes no total.
+
+
+Finalmente, se quisermos saber a probabilidade da cor de um berlinde que tiremos do saco, basta converter
+o referido saco numa distribuição correndo:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{marblesDist}\mathrel{=}\Varid{dist}\;\Varid{bagOfMarbles}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+obtendo-se a distribuição (graças ao módulo \Probability):
+\begin{quote}\small
+\begin{tabbing}\ttfamily
+~Green~~30\char46{}0\char37{}\\
+\ttfamily ~~~Red~~20\char46{}0\char37{}\\
+\ttfamily ~~Pink~~20\char46{}0\char37{}\\
+\ttfamily ~~Blue~~20\char46{}0\char37{}\\
+\ttfamily ~White~~10\char46{}0\char37{}
+\end{tabbing}
+\end{quote}
+cf.\ Figura \ref{fig:dist}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.4\textwidth]{cp1718t_media/marblesDist-mod5.png}
+\end{center}
+\caption{Distribuição de berlindes num saco.}
+\label{fig:dist}
+\end{figure}
+
+Partindo da seguinte declaração de \ensuremath{\Conid{Bag}} como um functor e como um mónade,
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{4}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{instance}\;\Conid{Functor}\;\Conid{Bag}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathsf{fmap}\;\Varid{f}\mathrel{=}\Conid{B}\comp \map \;(\Varid{f}\times\Varid{id})\comp \Varid{unB}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{instance}\;\Conid{Monad}\;\Conid{Bag}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{4}{}\<[4]%
+\>[4]{}\Varid{x}\bind \Varid{f}\mathrel{=}(\mu \comp \mathsf{fmap}\;\Varid{f})\;\Varid{x}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{4}{}\<[4]%
+\>[4]{}\Varid{return}\mathrel{=}\Varid{singletonbag}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\begin{enumerate}
+\item   
+Defina a função \ensuremath{\mu } (multiplicação do mónade \ensuremath{\Conid{Bag}}) e a função auxiliar
+\ensuremath{\Varid{singletonbag}}.
+\item   Verifique-as com os seguintes testes unitários:
+\begin{teste}
+Lei \ensuremath{\mu \comp \Varid{return}\mathrel{=}\Varid{id}}:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{test5a}\mathrel{=}\Varid{bagOfMarbles}\equiv \mu \;(\Varid{return}\;\Varid{bagOfMarbles}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\end{teste}
+\begin{teste}
+Lei \ensuremath{\mu \comp \mu \mathrel{=}\mu \comp \mathsf{fmap}\;\mu }:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{test5b}\mathrel{=}(\mu \comp \mu )\;\Varid{b3}\equiv (\mu \comp \mathsf{fmap}\;\mu )\;\Varid{b3}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+\vskip 1em
+onde \ensuremath{\Varid{b3}} é um saco dado em anexo.
+\end{teste}
+\end{enumerate}
+
+%----------------- Bibliografia (exige bibtex) --------------------------------%
+
+\bibliographystyle{plain}
+\bibliography{cp1718t}
+
+%----------------- Programa, bibliotecas e código auxiliar --------------------%
+
+\newpage
+
+\part*{Anexos}
+
+\appendix
+
+\section{Mónade para probabilidades e estatística}\label{sec:Dist}
+Mónades são functores com propriedades adicionais que nos permitem obter
+efeitos especiais em progra\-mação. Por exemplo, a biblioteca \Probability\
+oferece um mónade para abordar problemas de probabilidades. Nesta biblioteca,
+o conceito de distribuição estatística é captado pelo tipo
+\begin{eqnarray}
+    \ensuremath{\mathbf{newtype}\;\fun{Dist}\;\Varid{a}\mathrel{=}\Conid{D}\;\{\mskip1.5mu \Varid{unD}\mathbin{::}[\mskip1.5mu (\Varid{a},\Conid{ProbRep})\mskip1.5mu]\mskip1.5mu\}}
+    \label{eq:Dist}
+\end{eqnarray}
+em que \ensuremath{\Conid{ProbRep}} é um real de \ensuremath{\mathrm{0}} a \ensuremath{\mathrm{1}}, equivalente a uma escala de \ensuremath{\mathrm{0}} a \ensuremath{\mathrm{100}\mathbin{/}}.
+
+Cada par \ensuremath{(\Varid{a},\Varid{p})} numa distribuição \ensuremath{\Varid{d}\mathbin{::}\fun{Dist}\;\Varid{a}} indica que a probabilidade
+de \ensuremath{\Varid{a}} é \ensuremath{\Varid{p}}, devendo ser garantida a propriedade de  que todas as probabilidades
+de \ensuremath{\Varid{d}} somam \ensuremath{\mathrm{100}\mathbin{/}}.
+Por exemplo, a seguinte distribuição de classificações por escalões de $A$ a $E$,
+\[
+\begin{array}{ll}
+A & \rule{2mm}{3pt}\ 2\%\\
+B & \rule{12mm}{3pt}\ 12\%\\
+C & \rule{29mm}{3pt}\ 29\%\\
+D & \rule{35mm}{3pt}\ 35\%\\
+E & \rule{22mm}{3pt}\ 22\%\\
+\end{array}
+\]
+será representada pela distribuição
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{d1}\mathbin{::}\fun{Dist}\;\Conid{Char}{}\<[E]%
+\\
+\>[B]{}\Varid{d1}\mathrel{=}\Conid{D}\;[\mskip1.5mu (\text{\ttfamily 'A'},\mathrm{0.02}),(\text{\ttfamily 'B'},\mathrm{0.12}),(\text{\ttfamily 'C'},\mathrm{0.29}),(\text{\ttfamily 'D'},\mathrm{0.35}),(\text{\ttfamily 'E'},\mathrm{0.22})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+que o \GHCi\ mostrará assim:
+\begin{Verbatim}[fontsize=\small]
+'D'  35.0%
+'C'  29.0%
+'E'  22.0%
+'B'  12.0%
+'A'   2.0%
+\end{Verbatim}
+
+Este mónade é adequado à resolução de problemas de \emph{probabilidades e
+estatística} usando programação funcional, de forma elegante e como caso
+particular de programação monádica.
+
+\section{Definições auxiliares}\label{sec:helper_functions}
+Funções para mostrar \emph{bags}:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{8}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{33}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{36}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{instance}\;(\Conid{Show}\;\Varid{a},\Conid{Ord}\;\Varid{a},\Conid{Eq}\;\Varid{a})\Rightarrow \Conid{Show}\;(\Conid{Bag}\;\Varid{a})\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{show}\mathrel{=}\Varid{showbag}\comp \Varid{consol}\comp \Varid{unB}\;{}\<[36]%
+\>[36]{}\mathbf{where}{}\<[E]%
+\\
+\>[5]{}\hsindent{3}{}\<[8]%
+\>[8]{}\Varid{showbag}\mathrel{=}\Varid{concat}\comp {}\<[E]%
+\\
+\>[8]{}\hsindent{10}{}\<[18]%
+\>[18]{}(\plus [\mskip1.5mu \text{\ttfamily \char34 ~\char125 \char34}\mskip1.5mu])\comp {}\<[33]%
+\>[33]{}(\text{\ttfamily \char34 \char123 ~\char34}\mathbin{:})\comp {}\<[E]%
+\\
+\>[8]{}\hsindent{10}{}\<[18]%
+\>[18]{}(\Varid{intersperse}\;\text{\ttfamily \char34 ~,~\char34})\comp {}\<[E]%
+\\
+\>[8]{}\hsindent{10}{}\<[18]%
+\>[18]{}\Varid{sort}\comp {}\<[E]%
+\\
+\>[8]{}\hsindent{10}{}\<[18]%
+\>[18]{}(\map \;\Varid{f})\;\mathbf{where}\;\Varid{f}\;(\Varid{a},\Varid{b})\mathrel{=}(\Varid{show}\;\Varid{a})\plus \text{\ttfamily \char34 ~|->~\char34}\plus (\Varid{show}\;\Varid{b}){}\<[E]%
+\\
+\>[B]{}\Varid{unB}\;(\mathit B\;\Varid{x})\mathrel{=}\Varid{x}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Igualdade de \emph{bags}:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{4}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{12}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{instance}\;(\Conid{Eq}\;\Varid{a})\Rightarrow \Conid{Eq}\;(\Conid{Bag}\;\Varid{a})\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{4}{}\<[4]%
+\>[4]{}\Varid{b}\equiv \Varid{b'}\mathrel{=}(\Varid{unB}\;\Varid{b})\mathbin{`\Varid{lequal}`}(\Varid{unB}\;\Varid{b'}){}\<[E]%
+\\
+\>[4]{}\hsindent{8}{}\<[12]%
+\>[12]{}\mathbf{where}\;\Varid{lequal}\;\Varid{a}\;\Varid{b}\mathrel{=}\Varid{isempty}\;(\Varid{a}\mathbin{\ominus}\Varid{b}){}\<[E]%
+\\
+\>[12]{}\hsindent{6}{}\<[18]%
+\>[18]{}\Varid{ominus}\;\Varid{a}\;\Varid{b}\mathrel{=}\Varid{a}\plus \Varid{neg}\;\Varid{b}{}\<[E]%
+\\
+\>[12]{}\hsindent{6}{}\<[18]%
+\>[18]{}\Varid{neg}\;\Varid{x}\mathrel{=}[\mskip1.5mu (\Varid{k},\mathbin{-}\Varid{i})\mid (\Varid{k},\Varid{i})\leftarrow \Varid{x}\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Ainda sobre o mónade \ensuremath{\Conid{Bag}}:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{instance}\;\Conid{Applicative}\;\Conid{Bag}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{pure}\mathrel{=}\Varid{return}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}(\mathbin{<*>})\mathrel{=}\Varid{aap}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+O exemplo do texto:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{bagOfMarbles}\mathrel{=}\mathit B\;[\mskip1.5mu (\Conid{Pink},\mathrm{2}),(\Conid{Green},\mathrm{3}),(\Conid{Red},\mathrm{2}),(\Conid{Blue},\mathrm{2}),(\Conid{White},\mathrm{1})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Um valor para teste (bags de bags de bags):
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{7}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{b3}\mathbin{::}\Conid{Bag}\;(\Conid{Bag}\;(\Conid{Bag}\;\Conid{Marble})){}\<[E]%
+\\
+\>[B]{}\Varid{b3}\mathrel{=}\mathit B\;[\mskip1.5mu (\mathit B\;[\mskip1.5mu (\mathit B\;[\mskip1.5mu (\Conid{Pink},\mathrm{2}),(\Conid{Green},\mathrm{3}),(\Conid{Red},\mathrm{2}),(\Conid{Blue},\mathrm{2}),(\Conid{White},\mathrm{1})\mskip1.5mu],\mathrm{5}){}\<[E]%
+\\
+\>[B]{}\hsindent{7}{}\<[7]%
+\>[7]{},(\mathit B\;[\mskip1.5mu (\Conid{Pink},\mathrm{1}),(\Conid{Green},\mathrm{2}),(\Conid{Red},\mathrm{1}),(\Conid{Blue},\mathrm{1})\mskip1.5mu],\mathrm{2})\mskip1.5mu],\mathrm{2})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+Outras funções auxiliares:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{a}\mapsto\Varid{b}\mathrel{=}(\Varid{a},\Varid{b}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{consol}\mathbin{::}(\Conid{Eq}\;\Varid{b})\Rightarrow [\mskip1.5mu (\Varid{b},\Conid{Int})\mskip1.5mu]\to [\mskip1.5mu (\Varid{b},\Conid{Int})\mskip1.5mu]{}\<[E]%
+\\
+\>[B]{}\Varid{consol}\mathrel{=}\Varid{filter}\;\Varid{nzero}\comp \map \;(\Varid{id}\times\Varid{sum})\comp \Varid{col}\;\mathbf{where}\;\Varid{nzero}\;(\anonymous ,\Varid{x})\mathrel{=}\Varid{x}\not\equiv \mathrm{0}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{isempty}\mathbin{::}\Conid{Eq}\;\Varid{a}\Rightarrow [\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]\to \Conid{Bool}{}\<[E]%
+\\
+\>[B]{}\Varid{isempty}\mathrel{=}\Varid{all}\;(\equiv \mathrm{0})\comp \map \;\p2\comp \Varid{consol}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{col}\;\Varid{x}\mathrel{=}\Varid{nub}\;[\mskip1.5mu \Varid{k}\mapsto[\mskip1.5mu \Varid{d'}\mid (\Varid{k'},\Varid{d'})\leftarrow \Varid{x},\Varid{k'}\equiv \Varid{k}\mskip1.5mu]\mid (\Varid{k},\Varid{d})\leftarrow \Varid{x}\mskip1.5mu]{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{consolidate}\mathbin{::}\Conid{Eq}\;\Varid{a}\Rightarrow \Conid{Bag}\;\Varid{a}\to \Conid{Bag}\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{consolidate}\mathrel{=}\mathit B\comp \Varid{consol}\comp \Varid{unB}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+%----------------- Soluções dos alunos -----------------------------------------%
+
+\section{Soluções dos alunos}\label{sec:resolucao}
+Os alunos devem colocar neste anexo as suas soluções aos exercícios
+propostos, de acordo com o ``layout'' que se fornece. Não podem ser
+alterados os nomes ou tipos das funções dadas, mas pode ser adicionado texto e / ou 
+outras funções auxiliares que sejam necessárias.
+
+\subsection*{Problema 1}
+
+\begin{center}
+\large \textbf{In e Out de Blockchain}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{inBlockchain}\mathrel{=}\alt{\Conid{Bc}}{\Conid{Bcs}}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outBlockchain}\;(\Conid{Bc}\;\Varid{a})\mathrel{=}i_1\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{outBlockchain}\;(\Conid{Bcs}\;\Varid{b})\mathrel{=}i_2\;\Varid{b}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Anamorfismo, Catamorfismo e Hilomorfismo de uma Blockchain}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{recBlockchain}\;\Varid{f}\mathrel{=}\Varid{id}+\Varid{id}\times\Varid{f}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment Catamorfismo}{}\<[E]%
+\\
+\>[B]{}\cata{\Varid{g}}\mathrel{=}\Varid{g}\comp \Varid{recBlockchain}\;\cata{\Varid{g}}\comp \Varid{outBlockchain}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment Anamorfismo}{}\<[E]%
+\\
+\>[B]{}\ana{\Varid{g}}\mathrel{=}\Varid{inBlockchain}\comp \Varid{recBlockchain}\;\ana{\Varid{g}}\comp \Varid{g}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{hyloBlockchain}\;\Varid{h}\;\Varid{g}\mathrel{=}\cata{\Varid{h}}\comp \ana{\Varid{g}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Resoluções}
+\end{center}
+
+\begin{center}
+\large {Resolução da função \emph{allTransactions}}
+\end{center}
+
+\par Representando a função através do seguinte catamorfismo:
+\begin{eqnarray*}
+\xymatrix@C=3cm{
+    \ensuremath{\Conid{Blockchain}} 
+    \ar[d]_-{\ensuremath{\cata{\Varid{allTransactions}}}}
+    \ar@/^1pc/[r]^{\ensuremath{\Varid{outBlockchain}}}
+    \ar@{}[r]|-{\cong}
+&
+    \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Blockchain}} 
+    \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\Varid{id}\times\cata{\Varid{allTransactions}}}}
+    \ar@/^1pc/[l]^{\ensuremath{\Varid{inBlockchain}}}
+\\
+     \ensuremath{\Conid{Transactions}} 
+& \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Transactions}} 
+    \ar[l]^-{\ensuremath{\alt{\Varid{f}}{\Varid{h}\comp (\Varid{f}\times\Varid{id})}}}
+}
+\end{eqnarray*}
+\par Pode-se concluir que apenas é necessária uma função \ensuremath{\Varid{f}} que retire de cada \ensuremath{\Conid{Block}} a \ensuremath{\Conid{Transactions}}
+e uma \ensuremath{\Varid{h}} que junte a \ensuremath{\Conid{Transactions}} já retirada às \ensuremath{\Conid{Transactions}} da \ensuremath{\Conid{Blockchain}} já processada.
+Tendo em conta a construção de \ensuremath{\Conid{Block}\mathrel{=}(\Conid{MagicNr},(\Conid{Time},(\Conid{Transactions})))\mskip1.5mu\}},
+a primeira função será a composição:  
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{f}\mathrel{=}\p2\comp \p2{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+e a segunda:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{h}\mathrel{=}\mathsf{conc}{}\<[E]%
+\\
+\>[B]{}\Varid{relembrando}\;\Varid{que}\mathbin{:}\mathsf{conc}\mathbin{::}(\Varid{a},[\mskip1.5mu \Varid{a}\mskip1.5mu])\to [\mskip1.5mu \Varid{a}\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Desta forma a função \ensuremath{\Varid{allTransactions}} será definida da seguinte maneira:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{allTransactions}\mathrel{=}\cata{\alt{\Varid{f}}{\mathsf{conc}\comp (\Varid{f}\times\Varid{id})}}\;\mathbf{where}\;\Varid{f}\mathrel{=}\p2\comp \p2{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large {Resolução da função \emph{ledger}}
+\end{center}
+\par Tendo em vista o objectivo da função, que como o nome indica, é o de calcular o ledger de cada entidade, 
+podemos usar o catamorfismo definido na função \emph{allTransactions}. 
+\par Relembrando a definição da \ensuremath{\Conid{Transactions}}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Conid{Transactions}\mathrel{=}[\mskip1.5mu (\Conid{Entity},(\Conid{Value},\Conid{Entity}))\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+podemos deduzir que a solução poderá passar por fazer a fissão de cada elemento desta lista, ou seja, 
+cada \ensuremath{\Conid{Transaction}\mathbin{::}(\Conid{Entity}\;(\Conid{Value},\Conid{Entity}))} passa a ser do tipo \ensuremath{[\mskip1.5mu (\Conid{Entity},\Conid{Value}),(\Conid{Entity},\Conid{Value})\mskip1.5mu]},
+que por si já possui o mesmo tipo do conjunto de chegada da função \ensuremath{\Varid{ledger}} (\ensuremath{\Conid{Ledger}\mathrel{=}[\mskip1.5mu (\Conid{Entity},\Conid{Value})\mskip1.5mu]}).
+\par Desenhando o diagrama do isomorfismo do tipo \ensuremath{\Conid{Transactions}}
+
+\begin{eqnarray*}
+\xymatrix@C=1cm{
+    \ensuremath{\Conid{Transactions}} 
+    \ar@/^1pc/[r]^{\ensuremath{\Varid{out}}}
+    \ar@{}[r]|-{\cong}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\Conid{Transation}\times\Conid{Transactions}} 
+    \ar@/^1pc/[l]^{\ensuremath{\mathbf{in}}}
+}
+\end{eqnarray*}
+
+\par Podemos inferir que a separação dos elementos é um catamorfismo que se denominou por \ensuremath{\Varid{transSeparator}}
+que pode ser representado da seguinte forma
+
+\begin{eqnarray*}
+\xymatrix@C=3cm{
+    \ensuremath{\Conid{Transaction}} 
+    \ar[d]_-{\ensuremath{\cata{\Varid{transSeparator}}}}
+    \ar@/^1pc/[r]^{\ensuremath{\Varid{out}}}
+    \ar@{}[r]|-{\cong}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\Conid{Transaction}\times\Conid{Transactions}} 
+    \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\Varid{id}\times\cata{\Varid{transSeparator}}}}
+    \ar@/^1pc/[l]^{\ensuremath{\mathbf{in}}}
+\\
+     \ensuremath{\Conid{Ledger}} 
+& \ensuremath{\mathrm{1}\mathbin{+}\Conid{Transaction}\times\Conid{Ledger}} 
+    \ar[l]^-{\ensuremath{\Varid{g}}}
+} 
+\end{eqnarray*}
+
+\par Todavia, falta definir o \emph{g} (generator). Que terá de ser do tipo 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{g}\mathrel{=}[\mskip1.5mu \Varid{f},\Varid{k}\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+em que 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{f}\mathrel{=}\Varid{nil}\;\Varid{e}\;\Varid{k}\mathrel{=}\mathsf{conc}\comp (\Varid{transDivide}\times\Varid{id}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+na qual \ensuremath{\Varid{transDivide}} será a função que faz a fissão de uma \ensuremath{\Conid{Transaction}}.
+Função essa que pode ser definida da seguinte forma:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{transDivide}\;(\Varid{a},(\Varid{b},\Varid{c}))\mathrel{=}[\mskip1.5mu (\Varid{a},\mathbin{-}\Varid{b}),(\Varid{c},\Varid{b})\mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Por consequência, a função \ensuremath{\Varid{transSeparator}} pode ser definida da seguinte maneira:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{transSeparator}\mathrel{=}\cata{\alt{\Varid{nil}}{\mathsf{conc}\comp (\Varid{transDivide}\times\Varid{id})}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Depois de aplicada esta função apenas falta somar o valor transacionado inerente a cada entidade, 
+de forma a obter o seu balanço total numa determinada \ensuremath{\Conid{Blockchain}}.
+\par Tal acção pode ser levada a cabo, aplicando o mecanismo:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{consolLedger}\mathrel{=}\map \;(\Varid{id}\times\Varid{sum})\comp \Varid{col}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Que nos faz chegar à solução final.
+\par Desta forma a função \ensuremath{\Varid{ledger}} poderá ser assim definida:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{ledger}\mathrel{=}\Varid{consolLedger}\comp \Varid{transSeparator}\comp \Varid{allTransactions}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large {Resolução da função \emph{isValidMagicNr}}
+\end{center}
+
+\par O principal objetivo desta função é verificar se todos os números da Blockchain são válidos 
+ou seja, se nenhum número mágico \emph{MagicNo} aparece mais que uma vez. Para tal foi usado 
+um anamorfismo que é iniciado com uma lista vazia, onde à medida em que passa pela Blockchain verifica-se 
+se o \emph{MagicNo} está nesta lista em caso afirmativo, o Block é substituido por:  
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[5]{}\Conid{Block}\mathrel{=}(\text{\ttfamily \char34 True\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu])){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Onde, neste caso o \emph{MagicNo} é substituido por True sendo este adicionado à lista, o número mágico é portanto válido. Em caso 
+negativo o \emph{MagicNo} já se encontra na lista, o Block é portanto substituido por: 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[5]{}\Conid{Block}\mathrel{=}(\text{\ttfamily \char34 False\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu])){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Desta forma obtemos uma BlockChain que está populado com True e False, no passo seguinte é verificado 
+se ao longo do BlockChain todos os \emph{MagiNo} são True.  
+
+\par O raciocínio do grupo encontra-se expresso nos seguintes diagramas, anamorfismo e catamorfismo respetivamente:  
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{Blockchain}}
+            \ar[d]_-{\ensuremath{\ana{\Varid{magic2BoolGen}}}}
+            \ar[r]_-{\ensuremath{\Varid{magic2BoolGen}}}
+&
+    \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Blockchain}}
+           \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\Varid{id}\times\ana{\Varid{magi2BoolGen}}}}
+\\
+     \ensuremath{\Conid{Blockchain}}
+&
+     \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Blockchain}}
+           \ar[l]^-{\ensuremath{\Varid{inBlockchain}}}
+}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{Blockchain}}
+           \ar[d]_-{\ensuremath{\cata{\Varid{validCheckGen}}}} 
+           \ar[r]_-{\ensuremath{\Varid{outBlockchain}}}
+&
+    \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Blockchain}}
+           \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\Varid{id}\times\cata{\Varid{validCheckGen}}}}
+\\
+     \ensuremath{\Conid{Bool}}
+&
+     \ensuremath{\Conid{Block}\mathbin{+}\Conid{Block}\times\Conid{Bool}}
+           \ar[l]^-{\ensuremath{\Varid{validCheckGen}}}
+}
+\end{eqnarray*}
+
+\par No fim foram traduzidos num hilomorfismo cujos genes são os seguintes:
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{17}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{25}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{29}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{35}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{42}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{magic2BoolGen}\mathbin{::}([\mskip1.5mu \Conid{MagicNo}\mskip1.5mu],\Conid{Blockchain})\to \Conid{Block}+(\Conid{Block},([\mskip1.5mu \Conid{MagicNo}\mskip1.5mu],\Conid{Blockchain})){}\<[E]%
+\\
+\>[B]{}\Varid{magic2BoolGen}\;(\Varid{l},\Conid{Bc}\;\Varid{a}){}\<[25]%
+\>[25]{}\mathrel{=}\mathbf{if}\;(\Varid{elem}\;(\p1\;\Varid{a})\;\Varid{l})\;\mathbf{then}\;i_1\;(\text{\ttfamily \char34 False\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu]))\;\mathbf{else}\;i_1\;(\text{\ttfamily \char34 True\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu])){}\<[E]%
+\\
+\>[B]{}\Varid{magic2BoolGen}\;(\Varid{l},\Conid{Bcs}\;\Varid{b})\mathrel{=}\mathbf{if}\;(\Varid{elem}\;\Varid{p}\;\Varid{l})\;\mathbf{then}\;i_2\;\Varid{i2fals}\;\mathbf{else}\;i_2\;\Varid{i2verd}{}\<[E]%
+\\
+\>[B]{}\hsindent{29}{}\<[29]%
+\>[29]{}\mathbf{where}\;\Varid{p}{}\<[42]%
+\>[42]{}\mathrel{=}(\p1\comp \p1)\;\Varid{b}{}\<[E]%
+\\
+\>[29]{}\hsindent{6}{}\<[35]%
+\>[35]{}\Varid{pross}{}\<[42]%
+\>[42]{}\mathrel{=}[\mskip1.5mu \Varid{p}\mskip1.5mu]\plus \Varid{l}{}\<[E]%
+\\
+\>[29]{}\hsindent{6}{}\<[35]%
+\>[35]{}\Varid{verd}{}\<[42]%
+\>[42]{}\mathrel{=}(\text{\ttfamily \char34 True\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu])){}\<[E]%
+\\
+\>[29]{}\hsindent{6}{}\<[35]%
+\>[35]{}\Varid{fals}{}\<[42]%
+\>[42]{}\mathrel{=}(\text{\ttfamily \char34 False\char34},(\mathrm{0},[\mskip1.5mu \mskip1.5mu])){}\<[E]%
+\\
+\>[29]{}\hsindent{6}{}\<[35]%
+\>[35]{}\Varid{i2verd}\mathrel{=}(\Varid{verd},(\Varid{pross},\p2\;\Varid{b})){}\<[E]%
+\\
+\>[29]{}\hsindent{6}{}\<[35]%
+\>[35]{}\Varid{i2fals}\mathrel{=}(\Varid{fals},(\Varid{l},\p2\;\Varid{b})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{validCheckGen}\mathrel{=}\alt{\Varid{bc}}{\Varid{bcs}}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{17}{}\<[17]%
+\>[17]{}\Varid{bc}\;\Varid{a}{}\<[23]%
+\>[23]{}\mathrel{=}(\p1\;\Varid{a}\equiv \text{\ttfamily \char34 True\char34}){}\<[E]%
+\\
+\>[B]{}\hsindent{17}{}\<[17]%
+\>[17]{}\Varid{bcs}\;\Varid{b}\mathrel{=}((\p1\comp \p1)\;\Varid{b}\equiv \text{\ttfamily \char34 True\char34}\mathrel{\wedge}\p2\;\Varid{b}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{isValidMagicNr}\mathrel{=}\Varid{curry}\;(\Varid{hyloBlockchain}\;\Varid{validCheckGen}\;\Varid{magic2BoolGen})\;[\mskip1.5mu \mskip1.5mu]{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+\subsection*{Problema 2}
+
+\begin{center}
+\large \textbf{In e Out de QuadTree}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{35}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{inQTree}\mathrel{=}\alt{\Varid{cell}}{\Varid{block}}\;\mathbf{where}\;\Varid{cell}\;(\Varid{a},(\Varid{b},\Varid{c}))\mathrel{=}\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c}{}\<[E]%
+\\
+\>[B]{}\hsindent{35}{}\<[35]%
+\>[35]{}\Varid{block}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outQTree}\;(\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_1\;(\Varid{a},(\Varid{b},\Varid{c})){}\<[E]%
+\\
+\>[B]{}\Varid{outQTree}\;(\Conid{Block}\;\Varid{d}\;\Varid{e}\;\Varid{f}\;\Varid{g})\mathrel{=}i_2\;(\Varid{d},(\Varid{e},(\Varid{f},\Varid{g}))){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Anamorfismo, Catamorfismo, Hilomorfismo, functor base e map de uma QuadTree}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{baseQTree}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{f}\times\Varid{id}+\Varid{g}\times(\Varid{g}\times(\Varid{g}\times\Varid{g})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{recQTree}\;\Varid{f}\mathrel{=}\Varid{id}+\Varid{f}\times(\Varid{f}\times(\Varid{f}\times\Varid{f})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment Catamorfismo}{}\<[E]%
+\\
+\>[B]{}\cata{\Varid{g}}\mathrel{=}\Varid{g}\comp \Varid{recQTree}\;\cata{\Varid{g}}\comp \Varid{outQTree}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mbox{\onelinecomment Anamorfismo}{}\<[E]%
+\\
+\>[B]{}\ana{\Varid{g}}\mathrel{=}\Varid{inQTree}\comp \Varid{recQTree}\;\ana{\Varid{g}}\comp \Varid{g}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{hyloQTree}\;\Varid{h}\;\Varid{g}\mathrel{=}\cata{\Varid{h}}\comp \ana{\Varid{g}}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{instance}\;\Conid{Functor}\;\Conid{QTree}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathsf{fmap}\;\Varid{f}\mathrel{=}\cata{(\Varid{inQTree}\comp (\Varid{baseQTree}\;\Varid{f}\;\Varid{id}))}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Resoluções}
+\end{center}
+
+\begin{center}
+\large {Resolução da função \emph{rotateQTree}}
+\end{center}
+
+\par Pretende-se com esta função aplicar uma rotação
+a uma \ensuremath{\Conid{QTree}}, de modo que, aplicando tal função numa imagem
+traduzida por uma \ensuremath{\Conid{QTree}} esta rode no sentido dos ponteiros do relógio da seguinte maneira:
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=6cm]{troca}
+\end{center}
+\end{figure}
+
+\par Para efeito basta usar um Catamorfismo que aplica a troca.
+Pode-se assim deduzir que a função \ensuremath{\Varid{rotateQTree}} é um Catamorfismo, cujo seu \emph{generator} 
+e a própria função podem ser definidos da seguinte forma:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{47}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{qSwapperGen}\mathbin{::}(\Varid{a},(\Conid{Int},\Conid{Int}))+(\Conid{QTree}\;\Varid{a},(\Conid{QTree}\;\Varid{a},(\Conid{QTree}\;\Varid{a},\Conid{QTree}\;\Varid{a})))\to \Conid{QTree}\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{qSwapperGen}\mathrel{=}\alt{\Varid{cell}}{\Varid{rigthrotation}}\;\mathbf{where}\;\Varid{cell}\;(\Varid{a},(\Varid{b},\Varid{c}))\mathrel{=}\Conid{Cell}\;\Varid{a}\;\Varid{c}\;\Varid{b}\mbox{\onelinecomment  as dimensões trocam }{}\<[E]%
+\\
+\>[B]{}\hsindent{47}{}\<[47]%
+\>[47]{}\Varid{rigthrotation}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}\Conid{Block}\;\Varid{c}\;\Varid{a}\;\Varid{d}\;\Varid{b}\mbox{\onelinecomment  rotação no sentido dos ponteiros}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{rotateQTree}\mathrel{=}\cata{\Varid{qSwapperGen}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center} 
+    \includegraphics[width=3cm]{person90}   
+    \caption{Resultado do grupo do rotateBMP}
+\end{center}
+\end{figure}
+
+
+\begin{center}
+\large {Resolução da função \emph{scaleQTree}}
+\end{center}
+
+\par O objectivo desta função é alterar o tamanho de uma \ensuremath{\Conid{Cell}}
+segundo um factor dado. Para tal, definiu-se o Anaformismo:
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+     \ensuremath{\Conid{QTree}} 
+    \ar[r]^-{\ensuremath{\Varid{scaleGen}}}  
+    \ar[d]^-{\ensuremath{\ana{\Varid{scaleQTree}}}}
+& 
+     \ensuremath{\Conid{Cell}\mathbin{+}\Conid{QTree}\times((\Conid{Int},\Conid{QTree})\times((\Conid{Int},\Conid{QTree}),(\Conid{Int},\Conid{QTree})))} 
+    \ar[d]^-{\ensuremath{\Varid{id}\mathbin{+}\ana{\Varid{scaleQTree}}\times(\ana{\Varid{scaleQTree}}\times(\ana{\Varid{scaleQTree}}\times\ana{\Varid{scaleQTree}}))}}
+\\
+     \ensuremath{\Conid{QTree}} 
+    \ar@/^1pc/[r]^{\ensuremath{\Varid{outQTree}}}
+    \ar@{}[r]|-{\cong}
+&
+    \ensuremath{\Conid{Cell}\mathbin{+}\Conid{QTree}\times(\Conid{QTree}\times(\Conid{QTree}\times\Conid{QTree}))} 
+    \ar@/^1pc/[l]^{\ensuremath{\Varid{inQTree}}}
+} 
+\end{eqnarray*}
+
+\par Em que \ensuremath{\Varid{scaleGen}} e \ensuremath{\Varid{scaleQTree}} são definidos do seguinte modo:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{PairQTInt}\;\Varid{t}\mathrel{=}(\Conid{Int},\Conid{QTree}\;\Varid{t}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{scaleGen}\mathbin{::}\Conid{PairQTInt}\;\Varid{t}\to (\Varid{t},(\Conid{Int},\Conid{Int}))+(\Conid{PairQTInt}\;\Varid{t},(\Conid{PairQTInt}\;\Varid{t},(\Conid{PairQTInt}\;\Varid{t},\Conid{PairQTInt}\;\Varid{t}))){}\<[E]%
+\\
+\>[B]{}\Varid{scaleGen}\;(\Varid{x},\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_1\;(\Varid{a},(\Varid{b}\mathbin{*}\Varid{x},\Varid{c}\mathbin{*}\Varid{x})){}\<[E]%
+\\
+\>[B]{}\Varid{scaleGen}\;(\Varid{x},\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d})\mathrel{=}i_2\;((\Varid{x},\Varid{a}),((\Varid{x},\Varid{b}),((\Varid{x},\Varid{c}),(\Varid{x},\Varid{d})))){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{scaleQTree}\mathrel{=}\Varid{curry}\;\ana{\Varid{scaleGen}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center} 
+    \includegraphics[width=3cm]{personx2} 
+    \caption{Resultado do grupo do scaleBMP}
+\end{center}
+\end{figure}
+
+
+\begin{center}
+\large {Resolução da função \emph{invertQTree}}
+\end{center}
+
+\par A função \ensuremath{\Varid{invertQTree}} tem como propósito a inversão de cores de uma \ensuremath{\Conid{QTree}\;\Conid{PixelRGBA8}}.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Conid{Relembrando}\;\Varid{o}\;\Varid{construtor}{}\<[E]%
+\\
+\>[B]{}\Conid{PixelRGBA8}\mathbin{::}\Conid{Pixel8}\to \Conid{Pixel8}\to \Conid{Pixel8}\to \Conid{Pixel8}\to \Conid{PixelRGBA8}{}\<[E]%
+\\
+\>[B]{}\Varid{em}\;\Varid{que}{}\<[E]%
+\\
+\>[B]{}\Conid{Pixel8}\mathrel{=}\Varid{red}\;\Varid{green}\;\Varid{blue}\;\Varid{alpha},\Varid{respectivamente}\comp {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Visto que, para inverter um pixel basta subtrair 255-c para cada componente c de cor RGB, 
+excepto para alpha. Desta forma, é possível deduzir o Catamorfismo que faz a inversão.
+Catamorfismo esse representado no diagrama abaixo.
+
+\begin{eqnarray*}
+\xymatrix@C=1.4cm{
+    \ensuremath{\Conid{QTree}\;\Conid{PixelRGBA8}} 
+    \ar[d]^-{\ensuremath{\cata{\Varid{invertQTree}}}}
+    \ar@/^1pc/[r]^{\ensuremath{\Varid{outQTree}}}
+    \ar@{}[r]|-{\cong}
+&
+    \ensuremath{\Conid{Cell}\mathbin{+}\Conid{QTree}\times(\Conid{QTree}\times(\Conid{QTree}\times\Conid{QTree}))} 
+    \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\cata{\Varid{invertQTree}}\times(\cata{\Varid{invertQTree}}\times(\cata{\Varid{invertQTree}}\times\cata{\Varid{invertQTree}}))}}
+    \ar@/^1pc/[l]^{\ensuremath{\Varid{inQTree}}}
+\\
+     \ensuremath{\Conid{QTree}\;\Conid{PixelRGBA8}} 
+& \ensuremath{\Conid{Cell}\mathbin{+}\Conid{QTree}\times(\Conid{QTree}\times(\Conid{QTree}\times\Conid{QTree}))} 
+    \ar[l]^-{\ensuremath{\Varid{invertGen}}}
+} 
+\end{eqnarray*}
+
+Cuja definição das funções é dada da seguinte maneira, 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{QTPixel}\mathrel{=}\Conid{QTree}\;\Conid{PixelRGBA8}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{invertGen}\mathbin{::}(\Conid{PixelRGBA8},(\Conid{Int},\Conid{Int}))+(\Conid{QTPixel},(\Conid{QTPixel},(\Conid{QTPixel},\Conid{QTPixel})))\to \Conid{QTPixel}{}\<[E]%
+\\
+\>[B]{}\Varid{invertGen}\mathrel{=}\Varid{inQTree}\comp (\Varid{baseQTree}\;\Varid{pixelInvert}\;\Varid{id}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{pixelInvert}\;(\Conid{PixelRGBA8}\;\Varid{red}\;\Varid{green}\;\Varid{blue}\;\Varid{alpha})\mathrel{=}\Conid{PixelRGBA8}\;(\mathrm{255}\mathbin{-}\Varid{red})\;(\mathrm{255}\mathbin{-}\Varid{green})\;(\mathrm{255}\mathbin{-}\Varid{blue})\;\Varid{alpha}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{invertQTree}\mathrel{=}\cata{(\Varid{invertGen})}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center} 
+    \includegraphics[width=2cm]{personinv} 
+    \caption{Resultado do grupo do invertBMP}
+\end{center}
+\end{figure}
+
+
+\begin{center}
+\large {Resolução da função \emph{compressQTree}}
+\end{center}
+
+\par O objetivo desta função é comprimir uma QTree dado um nível de compressão x, para tal foi elaborado um 
+conjunto de funções. Em primeiro lugar medimos a profundidade total da árvore original sendo depois subtraido 
+o nível de compressão à profundidade, é feita de seguida uma contagem decrescente até chegar à profundidade 
+resultante da subtração. Ao chegar a esta profundidade se for uma \emph{Cell} não se aplica alterações caso 
+contrário é um \emph{Block} onde este é transformado numa \emph{Cell}. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{34}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{compressGen}\mathbin{::}(\Conid{Int},\Conid{QTree}\;\Varid{a})\to (\Varid{a},(\Conid{Int},\Conid{Int}))+((\Conid{Int},\Conid{QTree}\;\Varid{a}),((\Conid{Int},\Conid{QTree}\;\Varid{a}),((\Conid{Int},\Conid{QTree}\;\Varid{a}),(\Conid{Int},\Conid{QTree}\;\Varid{a})))){}\<[E]%
+\\
+\>[B]{}\Varid{compressGen}\;(\Varid{countDown},\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_1\;(\Varid{a},(\Varid{b},\Varid{c})){}\<[E]%
+\\
+\>[B]{}\Varid{compressGen}\;(\Varid{countDown},\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d})\mathrel{=}\mathbf{if}\;(\Varid{countDown}\equiv \mathrm{0})\;\mathbf{then}\;i_1\;(\Varid{wandh}\;(\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}))\;\mathbf{else}\;i_2\;\Varid{counts}{}\<[E]%
+\\
+\>[B]{}\hsindent{28}{}\<[28]%
+\>[28]{}\mathbf{where}\;\Varid{count}\mathrel{=}\Varid{countDown}\mathbin{-}\mathrm{1}{}\<[E]%
+\\
+\>[28]{}\hsindent{6}{}\<[34]%
+\>[34]{}\Varid{counts}\mathrel{=}((\Varid{count},\Varid{a}),((\Varid{count},\Varid{b}),((\Varid{count},\Varid{c}),(\Varid{count},\Varid{d})))){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Originalmente estava planeado fazer esta função com o recurso a três catas, sendo depois transformados 
+num só, de modo a facilitar o entendimento desta função esta foi separada em quatro passos diferentes, *1, 
+*2, *3 e *4 como pode ser visto em comentário da função.   
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{16}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{24}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{94}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{wandh}\mathbin{::}\Conid{QTree}\;\Varid{a}\to (\Varid{a},(\Conid{Int},\Conid{Int})){}\<[E]%
+\\
+\>[B]{}\Varid{wandh}\mathrel{=}\Varid{lastStep}\comp \cata{\cdot }{}\<[E]%
+\\
+\>[B]{}\hsindent{9}{}\<[9]%
+\>[9]{}\conj{\alt{\Varid{singl}\comp (\Varid{id}\times(\Varid{fromIntegral}\comp \Varid{mul}\comp \conj{\Varid{toInteger}\comp \p1}{\Varid{toInteger}\comp \p2}))}{\mbox{\onelinecomment  *1 }{}\<[E]%
+\\
+\>[9]{}\hsindent{15}{}\<[24]%
+\>[24]{}\mathsf{conc}\comp \conj{\mathsf{conc}\comp \conj{\p1\comp \p1}{\p1\comp \p1\comp \p2}}{\mathsf{conc}\comp \conj{\p1\comp \p1\comp \p2\comp \p2}{\p1\comp \p2\comp \p2\comp \p2}}}}{\mbox{\onelinecomment  *2}{}\<[E]%
+\\
+\>[9]{}\hsindent{7}{}\<[16]%
+\>[16]{}\conj{\alt{\Varid{toInteger}\comp \p1\comp \p2}{\Varid{add}\comp \conj{\p1\comp \p2\comp \p1}{\p1\comp \p2\comp \p1\comp \p2}}}{\mbox{\onelinecomment  *3}{}\<[E]%
+\\
+\>[16]{}\hsindent{7}{}\<[23]%
+\>[23]{}\alt{\Varid{toInteger}\comp \p2\comp \p2}{\Varid{add}\comp \conj{\p2\comp \p2\comp \p1}{\p2\comp \p2\comp {}\<[94]%
+\>[94]{}\p1\comp \p2\comp \p2}}}}\mbox{\onelinecomment  *4}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=6cm]{wandh} 
+    \caption{Figura representativa do funcionamento do wandh}
+\end{center}
+\end{figure}
+
+\par O *1 constroi uma lista de pares em que o primeiro elemento é o tipo da árvore (a) e o segundo é a área do bloco, 
+o intuito do *2 é construir uma só lista com os pares todos concatenados da seguinte maneira: 
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=5cm]{conc} 
+    \caption{Figura representativa do funcionamento do *2}
+\end{center}
+\end{figure}
+
+\par O *3 calcula o comprimento do bloco e por fim o *4 calcula a altura do bloco, de seguida na lista resultante 
+é retirado o par que ocupa maior área ignorando todos os outros pares.  
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{minPair}\mathbin{::}[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]\to (\Varid{a},\Conid{Int}){}\<[E]%
+\\
+\>[B]{}\Varid{minPair}\;[\mskip1.5mu \Varid{a}\mskip1.5mu]\mathrel{=}\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{minPair}\;(\Varid{h}\mathbin{:}\Varid{t})\mathrel{=}\mathbf{let}\;\Varid{x}\mathrel{=}\Varid{minPair}\;\Varid{t}\;\mathbf{in}\;(\Varid{miniPair}\;\Varid{h}\;\Varid{x}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{miniPair}\mathbin{::}(\Varid{t},\Conid{Int})\to (\Varid{t},\Conid{Int})\to (\Varid{t},\Conid{Int}){}\<[E]%
+\\
+\>[B]{}\Varid{miniPair}\;(\Varid{a},\Varid{b})\;(\Varid{c},\Varid{d})\mathrel{=}\mathbf{if}\;(\Varid{b}\mathbin{>}\Varid{d})\;\mathbf{then}\;(\Varid{a},\Varid{b})\;\mathbf{else}\;(\Varid{c},\Varid{d}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{lastStep}\mathbin{::}([\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu],(\Conid{Integer},\Conid{Integer}))\to (\Varid{a},(\Conid{Int},\Conid{Int})){}\<[E]%
+\\
+\>[B]{}\Varid{lastStep}\mathrel{=}{}\<[13]%
+\>[13]{}(\p1\comp \Varid{minPair})\times(\Varid{fromIntegral}\times\Varid{fromIntegral}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par No fim é chegada a seguinte solução da compress: 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{compressQTree}\;\Varid{x}\;\Varid{qt}\mathrel{=}\ana{\Varid{compressGen}}\;(\Varid{minusNat}\;(\Varid{depthQTree}\;\Varid{qt})\;\Varid{x},\Varid{qt}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Foram geradas segundo esta solução as seguintes imagens: 
+
+\begin{figure}[H]
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{person0}
+\caption{Compressão nível 0}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{person1}
+\caption{Compressão nível 1}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{person2}
+\caption{Compressão nível 2}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{person3}
+\caption{Compressão nível 3}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{person4}
+\caption{Compresão de nível 4}
+\end{subfigure}
+\end{figure}
+
+
+\begin{center}
+\large {Resolução da função \emph{outlineQTree}}
+\end{center}
+
+\par Função cujo intuito é converter uma quad tree numa matriz monocromática de modo 
+a desenhar o contorno de uma malha poligonal para tal foi alterada uma função disponibilizada 
+pelos docentes de modo a: 
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=6cm]{matrix} 
+    \caption{Figura representativa do funcionamento da função qtB2bmB}
+\end{center}
+\end{figure}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{47}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{qtB2bmB}\mathbin{::}\Conid{QTree}\;\Conid{Bool}\to \Conid{Matrix}\;\Conid{Bool}{}\<[E]%
+\\
+\>[B]{}\Varid{qtB2bmB}\mathrel{=}\cata{\alt{\Varid{f}}{\Varid{g}}}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{f}\;(\Varid{k},(\Varid{i},\Varid{j}))\mathrel{=}\mathbf{if}\;(\Varid{k}\mathrel{\wedge}(\Varid{i}\geq \mathrm{3})\mathrel{\wedge}(\Varid{j}\geq \mathrm{3}))\;\mathbf{then}\;\Varid{matriz}\;\Varid{i}\;\Varid{j}\;\mathbf{else}\;matrix\;\Varid{j}\;\Varid{i}\;\underline{\Varid{k}}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{g}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{matriz}\;\Varid{i}\;\Varid{j}\mathrel{=}(matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){\,\leftrightarrow\,}{}\<[47]%
+\>[47]{}\mbox{\onelinecomment  linha de cima}{}\<[E]%
+\\
+\>[5]{}\hsindent{13}{}\<[18]%
+\>[18]{}(((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true}){\,\updownarrow\,}{}\<[47]%
+\>[47]{}\mbox{\onelinecomment  coluna esquerda}{}\<[E]%
+\\
+\>[5]{}\hsindent{13}{}\<[18]%
+\>[18]{}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;(\Varid{i}\mathbin{-}\mathrm{2})\;\Varid{false}){}\<[47]%
+\>[47]{}\mbox{\onelinecomment  matriz central}{}\<[E]%
+\\
+\>[5]{}\hsindent{13}{}\<[18]%
+\>[18]{}{\,\updownarrow\,}(matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true}))){}\<[47]%
+\>[47]{}\mbox{\onelinecomment  coluna direita}{}\<[E]%
+\\
+\>[5]{}\hsindent{13}{}\<[18]%
+\>[18]{}{\,\leftrightarrow\,}(matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true})){}\<[47]%
+\>[47]{}\mbox{\onelinecomment  linha de baixo}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outlineQTree}\;\Varid{f}\mathrel{=}\Varid{qtB2bmB}\comp \cata{(\Varid{inQTree}\comp (\Varid{baseQTree}\;\Varid{f}\;\Varid{id}))}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Os resultados obtidos pelo grupo foram os seguintes: 
+
+\begin{figure}[H]
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{personOut1}
+\caption{Resultado da outlineBMP}
+\end{subfigure}
+%
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=0.2\linewidth]{personOut2}
+\caption{Resultado da addOutlineBMP}
+\end{subfigure}
+\end{figure}
+
+
+\subsection*{Problema 3}
+
+\begin{center}
+\large \textbf{Resolução}
+\end{center}
+
+\par De modo a resolver este problema, o grupo recorreu as leis do cálculo funcional de modo a derivar 
+as funções de \emph{base k} e \emph{loop}, começou-se por aplicar a lei de recursividade múltipla a 
+\ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}} do seguinte modo:  
+
+
+    \par \par A partir da definição de l e de f dadas no enunciado deduziu-se:  
+
+
+\begin{figure}[H]
+    \includegraphics[width=8cm]{splitlk}
+\end{figure}
+
+ \par A partir da definição de g e de s dadas no enunciado deduziu-se:
+
+\begin{figure}[H]
+    \includegraphics[width=8cm]{splitgs} 
+\end{figure}
+
+    \par Aplicando a lei "Banana-split" aos resultados dos dois últimos cálculos, obteve-se a seguinte demonstração:
+
+\begin{figure}[H]
+    \includegraphics[width=15cm]{bananasplits} 
+\end{figure}
+
+\par De forma a adaptar à função dada pelos docentes, chegou-se à seguinte definição de base k:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{base}\;\Varid{k}\mathrel{=}(\mathrm{1},\Varid{k}\mathbin{+}\mathrm{1},\mathrm{1},\mathrm{1}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Criaram-se as seguintes funções \ensuremath{\Varid{flatRandL},\Varid{unFlatReL}}, de modo a chegar à seguinte definição de loop:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{36}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{flatRandL}\mathbin{::}((\Varid{t},\Varid{t1}),(\Varid{t2},\Varid{t3}))\to (\Varid{t},\Varid{t1},\Varid{t2},\Varid{t3}){}\<[E]%
+\\
+\>[B]{}\Varid{flatRandL}\;((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}))\mathrel{=}(\Varid{a},\Varid{b},\Varid{c},\Varid{d}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{unFlatReL}\mathbin{::}(\Varid{t},\Varid{t1},\Varid{t2},\Varid{t3})\to ((\Varid{t},\Varid{t1}),(\Varid{t2},\Varid{t3})){}\<[E]%
+\\
+\>[B]{}\Varid{unFlatReL}\;(\Varid{a},\Varid{b},\Varid{c},\Varid{d})\mathrel{=}((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{loop}\mathrel{=}\Varid{flatRandL}\comp \conj{{}\<[28]%
+\>[28]{}\conj{{}\<[36]%
+\>[36]{}\Varid{mul}\comp \p1}{(\mathbin{+}\mathrm{1})\comp \p2\comp \p1}}{\conj{\Varid{mul}\comp \p2}{(\mathbin{+}\mathrm{1})\comp \p2\comp \p2}}\comp \Varid{unFlatReL}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 4}
+
+\begin{center}
+\large \textbf{In e Out de FTree}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{inFTree}\mathrel{=}\alt{\Conid{Unit}}{\Varid{comp}}\;\mathbf{where}\;\Varid{comp}\;(\Varid{a},(\Varid{b},\Varid{c}))\mathrel{=}\Conid{Comp}\;\Varid{a}\;\Varid{b}\;\Varid{c}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outFTree}\;(\Conid{Unit}\;\Varid{a})\mathrel{=}i_1\;\Varid{a}{}\<[E]%
+\\
+\>[B]{}\Varid{outFTree}\;(\Conid{Comp}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_2\;(\Varid{a},(\Varid{b},\Varid{c})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Anamorfismo, Catamorfismo, Hilomorfismo, functor base e map de uma FTree}
+\end{center}
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{h}\mathrel{=}\Varid{g}+\Varid{f}\times(\Varid{h}\times\Varid{h}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{recFTree}\;\Varid{f}\mathrel{=}\Varid{id}+\Varid{id}\times(\Varid{f}\times\Varid{f}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{cataFTree}\;\Varid{g}\mathrel{=}\Varid{g}\comp \Varid{recFTree}\;(\Varid{cataFTree}\;\Varid{g})\comp \Varid{outFTree}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{anaFTree}\;\Varid{g}\mathrel{=}\Varid{inFTree}\comp \Varid{recFTree}\;(\Varid{anaFTree}\;\Varid{g})\comp \Varid{g}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{hyloFTree}\;\Varid{g}\;\Varid{h}\mathrel{=}\Varid{cataFTree}\;\Varid{g}\comp \Varid{anaFTree}\;\Varid{h}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{instance}\;\Conid{Bifunctor}\;\Conid{FTree}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{bimap}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataFTree}\;(\Varid{inFTree}\comp (\Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{id})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large \textbf{Resoluções}
+\end{center}
+
+\begin{center}
+\large {Resolução da função \emph{generatePTree}}
+\end{center}
+
+\par De modo a proceder ao mecanismo de geração da árvore, foi usado um par (x,y) onde o y é a ordem pretendida
+e o x é a ordem atual, ao longo das iterações do programa o x é incrementado sendo também calculado o tamanho
+do lado, quando a ordem atual (x) é igual à ordem pretendida (y) é criada uma \ensuremath{\Conid{Unit}}.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{78}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{fTreeGen}\mathbin{::}(\Conid{Int},\Conid{Int})\to \Conid{Float}+(\Conid{Float},((\Conid{Int},\Conid{Int}),(\Conid{Int},\Conid{Int}))){}\<[E]%
+\\
+\>[B]{}\Varid{fTreeGen}\;(\Varid{x},\Varid{y})\mathrel{=}\mathbf{if}\;(\Varid{x}\equiv \Varid{y})\;\mathbf{then}\;i_1\;\Varid{tam}\;\mathbf{else}\;i_2\;(\Varid{tam},((\Varid{x}\mathbin{+}\mathrm{1},\Varid{y}),(\Varid{x}\mathbin{+}\mathrm{1},\Varid{y})))\;\mathbf{where}\;\Varid{tam}\mathrel{=}\Varid{size}\mathbin{*}(((\Varid{sqrt}\;\mathrm{2})\mathbin{/}\mathrm{2})\mathbin{\uparrow}\Varid{x}){}\<[E]%
+\\
+\>[B]{}\hsindent{78}{}\<[78]%
+\>[78]{}\Varid{size}\mathrel{=}\mathrm{100}\mbox{\onelinecomment tamanho do lado do primeiro quadrado}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{generatePTree}\mathrel{=}\Varid{curry}\;(\Varid{anaFTree}\;\Varid{fTreeGen})\;\mathrm{0}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{center}
+\large {Resolução da função \emph{drawPTree}}
+\end{center}
+
+\par Nesta função foi criada uma lista por compreensão que possui a primeira figura, a direção e a árvore 
+sendo aplicada as transformações à primeira figura ao longo da árvore da maneira a obter 
+\ensuremath{\Conid{FTree}\;\Conid{Picture}\;\Conid{Picture}}, é de notar que a árvore de ordem zero nunca é calculada nem a 
+árvore que é recebida esta irá ser reaproveitada, gera apenas as árvores intermédias de 
+maneira a poupar cálculos.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{27}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{40}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{45}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{50}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{56}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{62}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{76}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{77}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{80}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{84}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{90}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{draw}\mathbin{::}\Conid{FTree}\;\Varid{a}\;\Varid{b}\to [\mskip1.5mu \Conid{FTree}\;\Conid{Picture}\;\Conid{Picture}\mskip1.5mu]{}\<[E]%
+\\
+\>[B]{}\Varid{draw}\;\Varid{x}\mathrel{=}\mathbf{if}\;(\Varid{depth}\mathbin{>}\mathrm{1})\;\mathbf{then}\;[\mskip1.5mu \Conid{Unit}\;\Varid{sq}\mskip1.5mu]\plus {}\<[45]%
+\>[45]{}\mbox{\onelinecomment  árvore de ordem zero }{}\<[E]%
+\\
+\>[B]{}\hsindent{27}{}\<[27]%
+\>[27]{}(\map \;\ana{\cdot }\;[\mskip1.5mu (\Varid{sq},(\mathrm{3},\Varid{gen}\;\Varid{y}))\mid \Varid{y}\leftarrow [\mskip1.5mu \mathrm{1}\mathinner{\ldotp\ldotp}(\Varid{depth}\mathbin{-}\mathrm{1})\mskip1.5mu]\mskip1.5mu]){}\<[76]%
+\>[76]{}\mbox{\onelinecomment  lista das árvores intermédias}{}\<[E]%
+\\
+\>[B]{}\hsindent{27}{}\<[27]%
+\>[27]{}\plus [\mskip1.5mu \ana{(\Varid{sq},(\mathrm{3},\Varid{x}))}\mskip1.5mu]{}\<[50]%
+\>[50]{}\mbox{\onelinecomment  última árvore }{}\<[E]%
+\\
+\>[B]{}\hsindent{22}{}\<[22]%
+\>[22]{}\mathbf{else}\;\mathbf{if}\;(\Varid{depth}\equiv \mathrm{1})\;\mathbf{then}\;[\mskip1.5mu \Conid{Unit}\;\Varid{sq},\ana{(\Varid{sq},(\mathrm{3},\Varid{gen}\;\mathrm{1}))}\mskip1.5mu]{}\<[E]%
+\\
+\>[22]{}\hsindent{18}{}\<[40]%
+\>[40]{}\mathbf{else}\;[\mskip1.5mu \Conid{Unit}\;\Varid{sq}\mskip1.5mu]{}\<[E]%
+\\
+\>[40]{}\hsindent{16}{}\<[56]%
+\>[56]{}\mathbf{where}\;\Varid{depth}\mathrel{=}\Varid{depthFTree}\;\Varid{x}{}\<[84]%
+\>[84]{}\mbox{\onelinecomment  profundidade da árvore recebida }{}\<[E]%
+\\
+\>[56]{}\hsindent{6}{}\<[62]%
+\>[62]{}\Varid{size}\mathrel{=}\mathrm{100}{}\<[77]%
+\>[77]{}\mbox{\onelinecomment  tamanho do primeiro quadrado}{}\<[E]%
+\\
+\>[56]{}\hsindent{6}{}\<[62]%
+\>[62]{}\Varid{sq}\mathrel{=}\Varid{square}\;\Varid{size}{}\<[80]%
+\>[80]{}\mbox{\onelinecomment  função que calcula as imagens}{}\<[E]%
+\\
+\>[56]{}\hsindent{6}{}\<[62]%
+\>[62]{}\ana{\cdot }\mathrel{=}\Varid{anaFTree}\;(\Varid{pictureGen}){}\<[90]%
+\>[90]{}\mbox{\onelinecomment  gera a árvore de Pictures }{}\<[E]%
+\\
+\>[56]{}\hsindent{6}{}\<[62]%
+\>[62]{}\Varid{gen}\;\Varid{y}\mathrel{=}\Varid{generatePTree}\;\Varid{y}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Aqui são aplicadas as transformações consoante a direção à picture anterior, a direção é 
+distinguida consoante três números, \ensuremath{\Varid{dir}\equiv \mathrm{3}} representa o início ou seja, não tem direção, 
+\ensuremath{\Varid{dir}\equiv \mathrm{1}} é a direção da esquerda ou seja encontra-se na esquerda, \ensuremath{\Varid{dir}\equiv \mathrm{2}} encontra-se na direita.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{49}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{55}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{65}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{71}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{type}\;\Conid{PicAndFTree}\;\Varid{a}\;\Varid{b}\mathrel{=}(\Conid{Picture},(\Conid{Int},\Conid{FTree}\;\Varid{a}\;\Varid{b})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{pictureGen}\mathbin{::}\Conid{PicAndFTree}\;\Varid{a}\;\Varid{b}\to \Conid{Picture}+(\Conid{Picture},(\Conid{PicAndFTree}\;\Varid{a}\;\Varid{b},\Conid{PicAndFTree}\;\Varid{a}\;\Varid{b})){}\<[E]%
+\\
+\>[B]{}\Varid{pictureGen}\;(\Varid{pic},(\Varid{dir},\Conid{Unit}\;\Varid{a}))\mathrel{=}\mathbf{if}\;(\Varid{dir}\equiv \mathrm{1})\;\mathbf{then}\;i_1\;(\Varid{esquerda}\;\Varid{pic})\;\mathbf{else}\;i_1\;(\Varid{direita}\;\Varid{pic}){}\<[E]%
+\\
+\>[B]{}\Varid{pictureGen}\;(\Varid{pic},(\Varid{dir},\Conid{Comp}\;\Varid{a}\;\Varid{b}\;\Varid{c}))\mathrel{=}\mathbf{if}\;(\Varid{dir}\equiv \mathrm{3})\;\mathbf{then}\;{}\<[55]%
+\>[55]{}i_2\;(\Varid{pic},((\Varid{pic},(\mathrm{1},\Varid{b})),(\Varid{pic},(\mathrm{2},\Varid{c})))){}\<[E]%
+\\
+\>[B]{}\hsindent{49}{}\<[49]%
+\>[49]{}\mathbf{else}\;\mathbf{if}\;(\Varid{dir}\equiv \mathrm{1})\;\mathbf{then}\;i_2\;\Varid{esqi2}\;\mathbf{else}\;i_2\;\Varid{diri2}{}\<[E]%
+\\
+\>[49]{}\hsindent{16}{}\<[65]%
+\>[65]{}\mathbf{where}\;\Varid{esq}\mathrel{=}\Varid{esquerda}\;\Varid{pic}{}\<[E]%
+\\
+\>[65]{}\hsindent{6}{}\<[71]%
+\>[71]{}\Varid{dirp}\mathrel{=}\Varid{direita}\;\Varid{pic}{}\<[E]%
+\\
+\>[65]{}\hsindent{6}{}\<[71]%
+\>[71]{}\Varid{esqi2}\mathrel{=}(\Varid{esq},((\Varid{esq},(\mathrm{1},\Varid{b})),(\Varid{esq},(\mathrm{2},\Varid{c})))){}\<[E]%
+\\
+\>[65]{}\hsindent{6}{}\<[71]%
+\>[71]{}\Varid{diri2}\mathrel{=}(\Varid{dirp},((\Varid{dirp},(\mathrm{1},\Varid{b})),(\Varid{dirp},(\mathrm{2},\Varid{c})))){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par São aplicadas transformações às figuras da esquerda, transformações essas que são uma 
+translação na oblíqua orientada à esquerda em que são as alterações correspondentes as 
+coordenadas do polígono.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{26}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{36}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{42}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{44}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{59}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{63}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{esquerda}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{esquerda}\mathrel{=}\Varid{rotationLft}\comp \Varid{\Conid{Main}.resize}\comp \Varid{translationLft}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{translationLft}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{translationLft}\;(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}),(\Varid{e},\Varid{f}),(\Varid{g},\Varid{h})\mskip1.5mu])\mathrel{=}{}\<[E]%
+\\
+\>[B]{}\hsindent{26}{}\<[26]%
+\>[26]{}(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{leftx},\Varid{b}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{lefty}),{}\<[E]%
+\\
+\>[26]{}\hsindent{10}{}\<[36]%
+\>[36]{}(\Varid{c}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{leftx},\Varid{d}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{lefty}),{}\<[E]%
+\\
+\>[26]{}\hsindent{10}{}\<[36]%
+\>[36]{}(\Varid{e}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{leftx},\Varid{f}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{lefty}),{}\<[E]%
+\\
+\>[26]{}\hsindent{10}{}\<[36]%
+\>[36]{}(\Varid{g}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{leftx},\Varid{h}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{lefty})\mskip1.5mu]){}\<[E]%
+\\
+\>[36]{}\hsindent{6}{}\<[42]%
+\>[42]{}\mathbf{where}{}\<[E]%
+\\
+\>[42]{}\hsindent{2}{}\<[44]%
+\>[44]{}\Varid{upx}\mathrel{=}(\Varid{c}\mathbin{-}(\Varid{a})){}\<[59]%
+\>[59]{}\mbox{\onelinecomment  translação orientada ao x}{}\<[E]%
+\\
+\>[42]{}\hsindent{2}{}\<[44]%
+\>[44]{}\Varid{upy}\mathrel{=}(\Varid{d}\mathbin{-}(\Varid{b})){}\<[59]%
+\>[59]{}\mbox{\onelinecomment  translação orientada ao y}{}\<[E]%
+\\
+\>[42]{}\hsindent{2}{}\<[44]%
+\>[44]{}\Varid{leftx}\mathrel{=}((\Varid{c}\mathbin{-}\Varid{e})\mathbin{/}\mathrm{2}){}\<[63]%
+\>[63]{}\mbox{\onelinecomment  translação à esquerda no x}{}\<[E]%
+\\
+\>[42]{}\hsindent{2}{}\<[44]%
+\>[44]{}\Varid{lefty}\mathrel{=}((\Varid{d}\mathbin{-}\Varid{f})\mathbin{/}\mathrm{2}){}\<[63]%
+\>[63]{}\mbox{\onelinecomment  translação à esquerda no y}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=3cm]{translationleft} 
+    \caption{Figura representativa do funcionamento geral do \ensuremath{\Varid{translationLft}}}
+\end{center}
+\end{figure}
+
+
+\par São aplicadas transformações às figuras da direita, transformações essas que são uma 
+translação na oblíqua orientada à direita em que são as alterações correspondentes as 
+coordenadas do polígono.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{21}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{31}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{36}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{38}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{53}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{58}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{direita}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{direita}\mathrel{=}\Varid{rotationRgt}\comp \Varid{\Conid{Main}.resize}\comp \Varid{translationRgt}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{translationRgt}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{translationRgt}\;(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}),(\Varid{e},\Varid{f}),(\Varid{g},\Varid{h})\mskip1.5mu])\mathrel{=}{}\<[E]%
+\\
+\>[B]{}\hsindent{21}{}\<[21]%
+\>[21]{}(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{rigthx},\Varid{b}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{rigthy}),{}\<[E]%
+\\
+\>[21]{}\hsindent{10}{}\<[31]%
+\>[31]{}(\Varid{c}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{rigthx},\Varid{d}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{rigthy}),{}\<[E]%
+\\
+\>[21]{}\hsindent{10}{}\<[31]%
+\>[31]{}(\Varid{e}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{rigthx},\Varid{f}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{rigthy}),{}\<[E]%
+\\
+\>[21]{}\hsindent{10}{}\<[31]%
+\>[31]{}(\Varid{g}\mathbin{+}\Varid{upx}\mathbin{+}\Varid{rigthx},\Varid{h}\mathbin{+}\Varid{upy}\mathbin{+}\Varid{rigthy})\mskip1.5mu]){}\<[E]%
+\\
+\>[31]{}\hsindent{5}{}\<[36]%
+\>[36]{}\mathbf{where}{}\<[E]%
+\\
+\>[36]{}\hsindent{2}{}\<[38]%
+\>[38]{}\Varid{upx}\mathrel{=}(\Varid{c}\mathbin{-}(\Varid{a})){}\<[53]%
+\>[53]{}\mbox{\onelinecomment  translação orientada ao x}{}\<[E]%
+\\
+\>[36]{}\hsindent{2}{}\<[38]%
+\>[38]{}\Varid{upy}\mathrel{=}(\Varid{d}\mathbin{-}(\Varid{b})){}\<[53]%
+\>[53]{}\mbox{\onelinecomment  translação orientada ao y}{}\<[E]%
+\\
+\>[36]{}\hsindent{2}{}\<[38]%
+\>[38]{}\Varid{rigthx}\mathrel{=}((\Varid{e}\mathbin{-}\Varid{c})\mathbin{/}\mathrm{2}){}\<[58]%
+\>[58]{}\mbox{\onelinecomment  translação à direita no x}{}\<[E]%
+\\
+\>[36]{}\hsindent{2}{}\<[38]%
+\>[38]{}\Varid{rigthy}\mathrel{=}((\Varid{f}\mathbin{-}\Varid{d})\mathbin{/}\mathrm{2}){}\<[58]%
+\>[58]{}\mbox{\onelinecomment  translação à direita no y}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=3cm]{translationright} 
+    \caption{Figura representativa do funcionamento geral do \ensuremath{\Varid{translationRgt}}}
+\end{center}
+\end{figure}
+
+\par Aplica a razão à picture de forma a diminuir o tamanho ao longo das várias iterações.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{13}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{23}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{34}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{resize}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{resize}\;(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}),(\Varid{e},\Varid{f}),(\Varid{g},\Varid{h})\mskip1.5mu])\mathrel{=}{}\<[E]%
+\\
+\>[B]{}\hsindent{13}{}\<[13]%
+\>[13]{}(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a}\mathbin{+}\Varid{rsizeAx},\Varid{b}\mathbin{+}\Varid{rsizeAy}),{}\<[E]%
+\\
+\>[13]{}\hsindent{10}{}\<[23]%
+\>[23]{}(\Varid{c}\mathbin{+}\Varid{rsizeBx},\Varid{d}\mathbin{+}\Varid{rsizeBy}),{}\<[E]%
+\\
+\>[13]{}\hsindent{10}{}\<[23]%
+\>[23]{}(\Varid{e}\mathbin{-}\Varid{rsizeAx},\Varid{f}\mathbin{-}\Varid{rsizeAy}),{}\<[E]%
+\\
+\>[13]{}\hsindent{10}{}\<[23]%
+\>[23]{}(\Varid{g}\mathbin{-}\Varid{rsizeBx},\Varid{h}\mathbin{-}\Varid{rsizeBy})\mskip1.5mu]){}\<[E]%
+\\
+\>[23]{}\hsindent{5}{}\<[28]%
+\>[28]{}\mathbf{where}\;\Varid{r}\mathrel{=}\mathrm{0.20}{}\<[E]%
+\\
+\>[28]{}\hsindent{6}{}\<[34]%
+\>[34]{}\Varid{rsizeAx}\mathrel{=}((\Varid{e}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[28]{}\hsindent{6}{}\<[34]%
+\>[34]{}\Varid{rsizeAy}\mathrel{=}((\Varid{f}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[28]{}\hsindent{6}{}\<[34]%
+\>[34]{}\Varid{rsizeBx}\mathrel{=}((\Varid{g}\mathbin{-}\Varid{c})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[28]{}\hsindent{6}{}\<[34]%
+\>[34]{}\Varid{rsizeBy}\mathrel{=}((\Varid{h}\mathbin{-}\Varid{d})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=3cm]{resize} 
+    \caption{Diagrama representativo do funcionamento do \ensuremath{\Varid{resize}}}
+\end{center}
+\end{figure}
+
+\par No resize são calculados os vetores diagonais com razão sendo depois aplicado aos pontos do Polígono, 
+resultando num quadrado de dimensões inferiores ao originário.
+\bigbreak
+\par Aplica a rotação à direita tendo sempre o cuidado de manter a ordem dos pontos.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{33}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{39}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{rotationRgt}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{rotationRgt}\;(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}),(\Varid{e},\Varid{f}),(\Varid{g},\Varid{h})\mskip1.5mu])\mathrel{=}{}\<[E]%
+\\
+\>[B]{}\hsindent{18}{}\<[18]%
+\>[18]{}(\Conid{Polygon}\;[\mskip1.5mu (\Varid{centerx}\mathbin{-}\Varid{horizx},\Varid{centery}\mathbin{-}\Varid{horizy}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{+}\Varid{verticalx},\Varid{centery}\mathbin{+}\Varid{verticaly}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{+}\Varid{horizx},\Varid{centery}\mathbin{+}\Varid{horizy}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{-}\Varid{verticalx},\Varid{centery}\mathbin{-}\Varid{verticaly})\mskip1.5mu]){}\<[E]%
+\\
+\>[28]{}\hsindent{5}{}\<[33]%
+\>[33]{}\mathbf{where}\;\Varid{r}\mathrel{=}\mathrm{2}\mathbin{-}(\Varid{sqrt}\;\mathrm{2}\mathbin{/}\mathrm{2}){}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{centerx}\mathrel{=}(\Varid{a}\mathbin{+}(\Varid{e}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mbox{\onelinecomment abcissa do centro}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{centery}\mathrel{=}(\Varid{b}\mathbin{+}(\Varid{f}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mbox{\onelinecomment ordenada do centro}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{verticalx}\mathrel{=}((\Varid{c}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{verticaly}\mathrel{=}((\Varid{d}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{horizx}\mathrel{=}((\Varid{g}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{horizy}\mathrel{=}((\Varid{h}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=3cm]{rotationR} 
+    \caption{Figura representativa do funcionamento geral do \ensuremath{\Varid{rotationRgt}}}
+\end{center}
+\end{figure}
+
+\par No \ensuremath{\Varid{rotationRgt}} primeiramente é calculado o centro e apartir daí são calculadas as posições
+dos novos pontos tudo sob a forma de vetores e pontos. De modo a gerar estes novos pontos, é calculado 
+um vetor vertical e outro horizontal cada um com a dimensão de ele próprio aplicando a este a razão, depois 
+conforme esta rotação são aplicadas novas direções a este gerando por fim os pontos resultantes da rotação, 
+como pode ser visto conforme na figura supracitada.   
+\bigbreak
+\par Aplica a rotação à equerda tendo também aqui sempre o cuidado manter a ordem dos pontos.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{28}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{33}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{39}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{62}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{rotationLft}\mathbin{::}\Conid{Picture}\to \Conid{Picture}{}\<[E]%
+\\
+\>[B]{}\Varid{rotationLft}\;(\Conid{Polygon}\;[\mskip1.5mu (\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}),(\Varid{e},\Varid{f}),(\Varid{g},\Varid{h})\mskip1.5mu])\mathrel{=}{}\<[E]%
+\\
+\>[B]{}\hsindent{18}{}\<[18]%
+\>[18]{}(\Conid{Polygon}\;[\mskip1.5mu (\Varid{centerx}\mathbin{-}\Varid{verticalx},\Varid{centery}\mathbin{-}\Varid{verticaly}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{-}\Varid{horizx},\Varid{centery}\mathbin{-}\Varid{horizy}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{+}\Varid{verticalx},\Varid{centery}\mathbin{+}\Varid{verticaly}),{}\<[E]%
+\\
+\>[18]{}\hsindent{10}{}\<[28]%
+\>[28]{}(\Varid{centerx}\mathbin{+}\Varid{horizx},\Varid{centery}\mathbin{+}\Varid{horizy})\mskip1.5mu]){}\<[E]%
+\\
+\>[28]{}\hsindent{5}{}\<[33]%
+\>[33]{}\mathbf{where}\;\Varid{r}\mathrel{=}\mathrm{2}\mathbin{-}(\Varid{sqrt}\;\mathrm{2}\mathbin{/}\mathrm{2}){}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{centerx}\mathrel{=}(\Varid{a}\mathbin{+}(\Varid{e}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2}){}\<[62]%
+\>[62]{}\mbox{\onelinecomment abcissa do centro}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{centery}\mathrel{=}(\Varid{b}\mathbin{+}(\Varid{f}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2}){}\<[62]%
+\>[62]{}\mbox{\onelinecomment ordenada do centro}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{verticalx}\mathrel{=}((\Varid{c}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{verticaly}\mathrel{=}((\Varid{d}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{horizx}\mathrel{=}((\Varid{g}\mathbin{-}\Varid{a})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\\
+\>[33]{}\hsindent{6}{}\<[39]%
+\>[39]{}\Varid{horizy}\mathrel{=}((\Varid{h}\mathbin{-}\Varid{b})\mathbin{/}\mathrm{2})\mathbin{*}\Varid{r}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{figure}[H]
+\begin{center}
+    \includegraphics[width=3cm]{rotationL} 
+    \caption{Figura representativa do funcionamento geral do \ensuremath{\Varid{rotationLft}}}
+\end{center}
+\end{figure}
+
+\par No \ensuremath{\Varid{rotationLft}} tal como no \ensuremath{\Varid{rotationRgt}} é calculado o centro e apartir daí são calculadas as posições
+dos novos pontos. De modo a gerar estes novos pontos, é calculado 
+um vetor vertical e outro horizontal cada um com a dimensão de ele próprio aplicando a este a razão, depois 
+conforme esta rotação são aplicadas novas direções a este gerando por fim os pontos resultantes da rotação, 
+como pode ser visto conforme na figura aludida. 
+\bigbreak
+\par A solução final obtida pelo grupo foi esta em que que o \ensuremath{\Varid{extraiPic}} extrai da árvore todos os polígonos, 
+e o \ensuremath{\Varid{drawPTree}} concatena todos os polígonos na figura transformando numa imagem única. 
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{extraiPic}\mathrel{=}\Varid{cataFTree}\;\alt{\Varid{singl}}{\Varid{cons}\comp (\Varid{id}\times\mathsf{conc})}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{drawPTree}\mathrel{=}\map \;(\Varid{pictures}\comp \Varid{extraiPic})\comp \Varid{draw}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 5}
+
+\begin{center}
+\large \textbf{Resoluções}
+\end{center}
+
+\begin{center}
+\large {Resolução da função \emph{singletonbag}}
+\end{center}
+
+\par A função \ensuremath{\Varid{singletonbag}} retorna um \ensuremath{\Conid{Bag}} de A's, visto que o número de ocorrências do A é apenas um,
+por isso, basta devolver a lista com o par (A,1). Como se pode ver na seguinte definição:
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{singletonbag}\mathrel{=}\mathit B\comp \Varid{singl}\comp \conj{\Varid{id}}{\underline{\mathrm{1}}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par Dado o objetivo da função, concatenou-se as listas do \ensuremath{\Conid{Bag}} interior e, de seguida, aplicou-se o construtor \ensuremath{\Conid{Bag}}
+de modo a devolver um único \ensuremath{\Conid{Bag}} com todas as listas.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mu \mathrel{=}(\mathit B\comp \Varid{concat}\comp \map \;(\Varid{unB}\comp \p1)\comp \Varid{unB}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\par De modo a elaborar a função de distribuição de probabilides, foram usadas várias funções auxiliares.
+Em primeiro lugar, definiu-se a função \ensuremath{\Varid{total}} que irá na lista dentro do \ensuremath{\Conid{Bag}} e retira-se a frequência de
+cada e somam-se todas a seguir (retornando esse inteiro). Depois, a definição \ensuremath{\Varid{divi}} recebe um inteiro e devolve
+a divisão desse mesmo inteiro com o total (probabilidade de retirar aquele elemento). Por último, devolve um par
+com elemento/probabilidade. Posto isto, aplica-se o construtor de uma distribuição.
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{10}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{dist}\;\Varid{x}\mathrel{=}(\Conid{D}\comp \map \;(\Varid{id}\times\Varid{divi})\comp \Varid{unB})\;\Varid{x}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\Varid{total}\mathrel{=}(\Varid{fromIntegral}\comp \Varid{sum}\comp \cata{\Varid{g}}\comp \Varid{unB})\;\Varid{x}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\Varid{divi}\;\Varid{y}\mathrel{=}(\Varid{fromIntegral}\;\Varid{y})\mathbin{/}\Varid{total}{}\<[E]%
+\\
+\>[B]{}\hsindent{10}{}\<[10]%
+\>[10]{}\Varid{g}\mathrel{=}\alt{\Varid{nil}}{\Varid{cons}\comp (\p2\times\Varid{id})}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
+Estudar o texto fonte deste trabalho para obter o efeito:\footnote{Exemplos tirados de \cite{Ol18}.} 
+\begin{eqnarray*}
+\start
+    \ensuremath{\Varid{id}\mathrel{=}\conj{\Varid{f}}{\Varid{g}}}
+%
+s\just\equiv{ universal property }
+%
+        \ensuremath{\begin{lcbr}\p1\comp \Varid{id}\mathrel{=}\Varid{f}\\\p2\comp \Varid{id}\mathrel{=}\Varid{g}\end{lcbr}}
+%
+\just\equiv{ identity }
+%
+        \ensuremath{\begin{lcbr}\p1\mathrel{=}\Varid{f}\\\p2\mathrel{=}\Varid{g}\end{lcbr}}
+\qed
+\end{eqnarray*}
+
+Os diagramas podem ser produzidos recorrendo à \emph{package} \LaTeX\ 
+\href{https://ctan.org/pkg/xymatrix}{xymatrix}, por exemplo: 
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\cata{\Varid{g}}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\cata{\Varid{g}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\mathit B}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\mathit B}
+           \ar[l]^-{\ensuremath{\Varid{g}}}
+}
+\end{eqnarray*}
+
+%----------------- Fim do anexo com soluções dos alunos ------------------------%
+
+%----------------- Índice remissivo (exige makeindex) -------------------------%
+
+\printindex
+
+%----------------- Outras definições auxiliares -------------------------------------------%
+
+
+%----------------- Fim do documento -------------------------------------------%
+
+\end{document}
+
