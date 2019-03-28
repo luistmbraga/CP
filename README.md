@@ -6,5 +6,5 @@ Nota: 18 valores
 
 Comentários:
 
-  -> Corrigido após a apresentação.
-  -> Possíveis melhorias na questão 1.
+-> Corrigido após a apresentação.
+-> Possíveis melhorias na questão 1.
