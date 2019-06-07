@@ -1,3 +1,5 @@
+![alt text](https://github.com/BragaMann/CP/blob/master/pitagoras12.png)
+
 # Cálculo de programas - 17/18
 
 Repositório com o trabalho prático da UC Cálculo de Programas
