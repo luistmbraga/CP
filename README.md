@@ -1,4 +1,4 @@
-![alt text](https://github.com/BragaMann/CP/blob/master/pitagoras12.png)
+![alt text](https://github.com/BragaMann/CP/master/pitagoras12.png)
 
 # Cálculo de programas - 17/18
 
